@@ -1,0 +1,12 @@
+bookdown::bs4_book:
+  template: "templates/bs4_book_fr.html"
+  includes:
+#    in_header: assets/lang-fr.js   
+    in_header: header.html
+  css: style.css
+  theme:
+    primary: "#5b7886"
+    base_font:
+      google: Roboto
+  language: fr
+  repo: https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R

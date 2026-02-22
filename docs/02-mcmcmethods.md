@@ -1,0 +1,444 @@
+# MCMC methods {#mcmc}
+
+## Introduction
+
+I hope I did not lose you (too much) in the previous chapter with all those equations. In this new chapter, we go behind the scenes of Bayesian statistics by introducing Markov chain Monte Carlo (MCMC) methods. You will see how and why these simulation techniques have become essential for implementing Bayesian inference in practice. And because nothing beats practice, we will get our hands a little dirty by coding ourselves, using our running example on estimating a survival probability.
+
+## Applying Bayes’ theorem
+
+Let us return to our running example on coypus; I repeat the data:
+
+
+``` r
+y <- 19 # number of individuals that survived the winter
+n <- 57 # number of individuals monitored at the start of winter
+```
+
+Let us apply Bayes’ theorem more directly than in Chapter \@ref(principes), where we set aside the denominator $\Pr(\text{data})$. Let us see whether we can handle it. As we saw, this denominator is given by
+$\displaystyle \Pr(\text{y}) = \int{\Pr(\text{data} \mid \theta) \Pr(\theta) \, d\theta}$.
+So we will have to compute this integral. Let us start by writing an `R` function that computes the product of the (binomial) likelihood and the prior (Beta(1,1)), i.e. the numerator in Bayes’ theorem, $\Pr(\text{data} \mid \theta) \times \Pr(\theta)$:
+
+
+``` r
+num <- function(theta) dbinom(y, n, theta) * dbeta(theta, 1, 1)
+```
+
+We can now write the function that computes the denominator. To do so, we will use `R`’s `integrate()` function, which computes the integral of a one-variable function. The `integrate()` function uses quadrature techniques to approximate the area under the curve defined by the function to integrate, by breaking it into small pieces and summing them.
+
+
+``` r
+den <- integrate(num, 0, 1)$value
+```
+
+We then obtain a numerical approximation of the posterior distribution of winter survival, as in Figure \@ref(fig:posterior-numerique-plot):
+
+
+``` r
+# Create a grid of possible values for the survival probability (between 0 and 1)
+grid <- seq(0, 1, 0.01)
+
+# Compute posterior density values on the grid
+# num(grid) is likelihood * prior, and den is the normalizing constant
+posterior <- data.frame(
+  survival = grid,
+  ratio = num(grid) / den  # normalized posterior density
+)
+
+# Plot the posterior density curve
+posterior %>%
+  ggplot(aes(x = survival, y = ratio)) +
+  geom_line(size = 1.5) +
+  labs(x = "Survival probability", y = "Density") +
+  theme_minimal()
+```
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/posterior-numerique-plot-1.png" alt="Numerical approximation of the posterior distribution of winter survival." width="90%" />
+<p class="caption">(\#fig:posterior-numerique-plot)Numerical approximation of the posterior distribution of winter survival.</p>
+</div>
+
+How good is this numerical approximation? Ideally, we would like to compare the approximation to the true posterior distribution. Conveniently, we obtained it in Chapter \@ref(principes): it is a beta distribution with parameters 20 and 39. In Figure \@ref(fig:posterior-comparaison), you can see that the two curves overlap perfectly.
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/posterior-comparaison-1.png" alt="Comparison between the exact posterior (brick red) and the numerical approximation (cream)." width="90%" />
+<p class="caption">(\#fig:posterior-comparaison)Comparison between the exact posterior (brick red) and the numerical approximation (cream).</p>
+</div>
+
+The exact posterior distribution (brick red) and the numerical approximation (cream) for winter survival are indistinguishable, suggesting that the numerical approximation is more than satisfactory.
+
+In our example, we have a single parameter to estimate: winter survival. This means the denominator involves a one-dimensional integral, which is fairly easy to handle with quadrature techniques and `R`’s `integrate()` function.
+
+But what happens if we have several parameters? For example, imagine that you want to fit a regression model in which survival depends on an explanatory variable, say coypu body mass. The effect of this variable is captured by regression parameters $\beta_0$ (intercept) and $\beta_1$ (slope), and we also have the residual error with standard deviation $\sigma$ (see Chapter \@ref(lms)). Bayes’ theorem then gives the joint posterior distribution of these parameters (i.e. the three parameters together):
+
+$$ \displaystyle \Pr(\beta_0, \beta_1, \sigma \mid \text{y}) = \frac{ \Pr(\text{y} \mid \beta_0, \beta_1, \sigma) \times \Pr(\beta_0, \beta_1, \sigma)}{\displaystyle \iiint \Pr(\text{y} \mid \beta_0, \beta_1, \sigma) \Pr(\beta_0, \beta_1, \sigma) \, d\beta_0 \, d\beta_1 \, d\sigma} $$
+
+There are two major numerical challenges:
+
+- Do we really want to compute a triple integral? No, because classical methods rarely go much beyond two dimensions.
+- We are often interested in marginal distributions of parameters (for example, that of $\beta_1$, the effect of mass on survival), obtained by integrating the joint posterior distribution over the other parameters (here, a double integral with respect to $\beta_0$ and $\sigma) — which quickly becomes intractable as the number of parameters increases.
+
+In the next section, we introduce powerful simulation methods to overcome these limitations.
+
+## MCMC algorithms
+
+In short, the idea of Markov chain Monte Carlo (MCMC) methods is to use simulations to approximate posterior distributions with a given precision by drawing a large number of samples. This avoids the explicit computation of the multidimensional integrals that arise when applying Bayes’ theorem.
+
+These simulation algorithms consist of two parts: Markov chains and Monte Carlo. Let us try to understand these two terms.
+
+What does Monte Carlo mean? Monte Carlo integration is a simulation technique used to compute integrals of arbitrary functions $f$ of a random variable $X$ with distribution $\Pr(X)$, such as $\displaystyle \int f(X) \Pr(X) dX$. We draw values $X_1, \ldots, X_k$ from $\Pr(X)$, apply the function $f$ to these values, and then compute the mean of the resulting values, $\displaystyle{\frac{1}{k}}\sum_{i=1}^k{f(X_i)}$, to approximate the integral.
+
+How do we use Monte Carlo integration in a Bayesian context? The posterior distribution contains all the information we need about the parameter(s) we want to estimate. But when there are multiple parameters, we often want to summarize this information by computing numerical summaries. The simplest summary is the posterior mean,
+$E(\theta) = \int \theta \Pr(\theta \mid \text{data}) \, d\theta$,
+where $X$ is $\theta$ and $f$ is the identity. This posterior mean can be estimated by Monte Carlo integration; for example, for coypu survival:
+
+
+``` r
+# draw 1000 values from the Beta(20,39) posterior
+sample_from_posterior <- rbeta(1000, 20, 39)
+# compute the mean by Monte Carlo integration
+mean(sample_from_posterior)
+#> [1] 0.3405089
+```
+
+We can verify that the resulting mean is close to the theoretical expectation of a beta distribution:
+
+
+``` r
+20/(20+39) # expectation of the Beta(20,39) distribution
+#> [1] 0.3389831
+```
+
+Another useful numerical summary is a credible interval within which the parameter lies with a given probability, usually 0.95, i.e. a 95% credible interval. Determining the bounds of such an interval requires computing quantiles, which also relies on integrals, and therefore on Monte Carlo integration. A 95% credible interval for winter survival can be obtained with:
+
+
+``` r
+quantile(sample_from_posterior, probs = c(2.5/100, 97.5/100))
+#>      2.5%     97.5% 
+#> 0.2270862 0.4702974
+```
+
+By the way, there is a difference between a credible interval in Bayesian statistics and a confidence interval in frequentist statistics. A 95% confidence interval means that if we repeated the experiment a very large number of times (tag coypus with GPS and record the number of winter survivors), about 95% of the intervals constructed in this way would contain the true parameter value $\theta$. But we cannot say that the probability that the parameter lies within a given interval is 95%. A 95% credible interval, in contrast, means that there is a 95% probability that the parameter lies within that interval. The interpretation of a credible interval is a bit more intuitive than that of a confidence interval.
+
+Now, what is a Markov chain? A Markov chain is a random sequence of numbers in which each number depends only on the previous one. One example is the weather in my city, Montpellier, in the south of France, where a sunny day is very likely to be followed by another sunny day, say with probability 0.8, and a rainy day is rarely followed by another rainy day, say with probability 0.1. The dynamics of this Markov chain are captured by the transition matrix:
+
+\[
+\begin{array}{c|cc}
+& \text{Sunny tomorrow} & \text{Rainy tomorrow} \\ \\ \hline
+\text{Sunny today} & 0.8 & 0.2 \\\\
+\text{Rainy today}   & 0.9 & 0.1
+\end{array}
+\]
+
+Rows indicate today’s weather and columns indicate tomorrow’s. The cells give the probability of having a sunny or rainy day tomorrow depending on today’s weather (conditional probabilities; see Chapter \@ref(principes)).
+
+Under certain conditions, a Markov chain converges to a unique stationary distribution. In our weather example, let us iterate the chain for 20 steps:
+
+
+``` r
+temps <- matrix(c(0.8, 0.2, 0.9, 0.1), nrow = 2, byrow = T) # transition matrix
+etapes <- 20
+for (i in 1:etapes){
+  temps <- temps %*% temps # matrix multiplication
+}
+round(temps, 2) # matrix product after 20 steps
+#>      [,1] [,2]
+#> [1,] 0.82 0.18
+#> [2,] 0.82 0.18
+```
+
+Each row of the matrix converges toward the same distribution $(0.82, 0.18)$ as the number of steps increases. The convergence occurs regardless of the starting state: we then have probability 0.82 of sun and 0.18 of rain.
+
+Let us return to MCMC methods. The central idea is that we can construct a Markov chain whose stationary distribution is precisely the posterior distribution of our parameters. Keep this idea in mind: it is fundamental.
+
+By combining Monte Carlo and Markov chains, MCMC methods allow us to generate a sample of values whose distribution converges to the posterior distribution (Markov chain) and to use that sample to compute posterior numerical summaries (Monte Carlo), such as the mean or credible intervals.
+
+There are several ways to build Markov chains for Bayesian inference. You may have heard of the Metropolis–Hastings algorithm or the Gibbs sampler. You can consult <https://chi-feng.github.io/mcmc-demo/> for an interactive gallery of MCMC algorithms. Here, I illustrate the Metropolis algorithm and its practical implementation. For this I draw inspiration from the excellent book by Jim @albert2009. The goal is not to be able to write such an algorithm from scratch, but to grasp the main ideas and, above all, the notion of simulation.
+
+Let us return to our survival example. We will illustrate sampling from the posterior distribution of survival. Let us start by writing functions for the likelihood, the prior, and the posterior. We work on the log scale to manipulate sums and differences rather than products and ratios, which can make numerical calculations unstable:
+
+
+``` r
+# 19 animals found alive out of 57 captured, marked and released
+y <- 19
+n <- 57
+
+# binomial log-likelihood Bin(n = 57,p)
+loglikelihood <- function(x, p){
+  dbinom(x = x, size = n, prob = p, log = TRUE)
+}
+
+# uniform prior density
+logprior <- function(p){
+  dunif(x = p, min = 0, max = 1, log = TRUE)
+  # or dbeta(x = p, shape1 = 0, shape2 = 1, log = TRUE)
+}
+
+# posterior density (log scale)
+posterior <- function(x, p){
+  loglikelihood(x, p) + logprior(p)
+}
+```
+
+The Metropolis algorithm works as follows:
+
+1. Choose an initial value for the parameter to estimate. This is our starting value, or the initial point of the Markov chain.
+
+2. To decide the next step, propose moving away from the current parameter value—this is the candidate value. We add to the current value a draw from a normal distribution with some variance—this is the proposal distribution. The Metropolis algorithm is a special case of Metropolis–Hastings with symmetric proposals.
+
+3. Compute the ratio of posterior densities between the candidate position and the current position:
+$R = \displaystyle \frac{\Pr(\text{candidate value}|\text{data})}{\Pr(\text{current value}|\text{data})}$.
+To compute numerator and denominator, we simply apply Bayes’ theorem, and this is where the magic of MCMC happens: because $\Pr(\text{data})$ appears in both numerator and denominator, it cancels, and we no longer need to compute it. We have replaced the computation of an integral by simulations.
+
+4. If the posterior density at the candidate position is larger than at the current position, i.e. if the candidate value is more plausible, we accept it immediately. Otherwise, we accept it with probability $R$, and reject it with probability $1 - R$. For example, if the candidate value is ten times less plausible, we accept it with probability 0.1. We use a uniform random number between 0 and 1 (call it $X$): if $X < R$, we accept the candidate value; otherwise, we stay at the current value. In practice, we aim for an acceptance rate between 0.2 and 0.4, which can be adjusted by calibrating the proposal variance; this helps explore the whole parameter space.
+
+5. Repeat steps 2 to 4 a certain number of times—these are the iterations.
+
+Enough theory: let us implement it. We start by initializing:
+
+
+``` r
+steps <- 100 # number of steps (iterations) of the chain
+theta.post <- rep(NA, steps) # vector to store simulated values
+accept <- rep(NA, steps) # vector to record accept/reject decisions
+set.seed(666) # for reproducibility
+```
+
+Why do we need to initialize? Before running the Markov chain, we prepare the objects that will store the simulated values of our parameter (here, the survival probability) as well as information about whether each proposal was accepted. And what is `set.seed(666)` for? This command sets the seed of the random number generator. It ensures that the simulations are reproducible: if you rerun the code, you will obtain exactly the same simulated values as mine.
+
+We choose a starting value:
+
+
+``` r
+inits <- 0.5 # chosen starting value for theta
+theta.post[1] <- inits # record this value as the first position of the chain
+accept[1] <- 1 # the initial value is accepted by default
+```
+
+Why a starting value? A Markov chain has to start somewhere: here, we arbitrarily choose 0.5 as the initial value of the survival probability. The only constraint is that this value must be compatible with the prior: we are not going to pick a negative survival probability or 15. We place this value in the first element of `theta.post`, and we indicate with `accept[1] <- 1` that this first value is accepted by construction, since it is our starting point.
+
+Next, we write a function to propose a candidate value from the current value:
+
+
+``` r
+move <- function(x, away = 1){
+  logitx <- log(x / (1 - x)) # logit transform: maps x from (0,1) to (-∞,+∞)
+  logit_candidate <- logitx + rnorm(1, 0, away) # add centered normal noise, sd controlled by away
+  candidate <- plogis(logit_candidate) # inverse transform (logit^-1): returns a value between 0 and 1
+  return(candidate) # return proposed value
+}
+```
+
+This function introduces a random proposal around the current value. We work on the logit scale to ensure that the final proposal (candidate) always remains in the interval (0,1) (see also Chapter \@ref(glms)). The `away` parameter controls the spread of proposals: the larger it is, the larger the jumps; the smaller it is, the closer proposals remain to the current value.
+
+We then implement steps 2 to 4 of the algorithm in a loop (this is step 5: repeating iterations):
+
+
+``` r
+for (t in 2:steps){ # for each iteration, starting at the 2nd
+
+  # Step 2: propose a new value for theta
+  theta_star <- move(theta.post[t-1])  # candidate drawn from the previous value
+
+  # Step 3: compute the ratio of posterior densities (log scale)
+  pstar <- posterior(y, p = theta_star) # posterior density at candidate
+  pprev <- posterior(y, p = theta.post[t-1]) # posterior density at current value
+  logR <- pstar - pprev # difference on the log scale
+  R <- exp(logR) # back to the natural scale (density ratio)
+
+  # Step 4: accept or reject the proposal
+  X <- runif(1, 0, 1) # random draw between 0 and 1: the acceptance "roulette"
+  if (X < R){ # if the proposal is more plausible (or not too much worse)
+    theta.post[t] <- theta_star # accept and store the candidate
+    accept[t] <- 1 # record acceptance
+  } else {
+    theta.post[t] <- theta.post[t-1] # otherwise keep the previous value
+    accept[t] <- 0 # record rejection
+  }
+}
+```
+
+This loop builds the Markov chain iteratively. The probability of accepting a less plausible value is proportional to its likelihood ratio. The `accept` vector can then be used to diagnose the acceptance frequency, useful for calibrating the chain.
+
+Let us take a look at the first and last simulated values:
+
+
+``` r
+head(theta.post)
+#> [1] 0.5000000 0.5000000 0.3021903 0.3021903 0.1853669 0.1853669
+tail(theta.post)
+#> [1] 0.4076667 0.4076667 0.4076667 0.4076667 0.2914464 0.2914464
+```
+
+We can now visualize the chain’s evolution with a trace plot, i.e. a curve showing the simulated values of `theta` across iterations (Figure \@ref(fig:traceplot)):
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/traceplot-1.png" alt="Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations." width="90%" />
+<p class="caption">(\#fig:traceplot)Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations.</p>
+</div>
+
+What does this trace plot tell us? The horizontal axis represents iterations (or “time” in the Markov chain). The vertical axis shows the simulated values of the survival probability at each step. In the figure, we see that the chain sometimes stays at the same value for several consecutive iterations. This happens when the candidate value proposed by the algorithm is rejected—the chain then retains the previous (more precisely, current) value. At other times, we see jumps to new values, corresponding to accepted proposals.
+
+We can then wrap the algorithm into a reusable function, making it easy to run multiple chains:
+
+
+``` r
+metropolis <- function(steps = 100, inits = 0.5, away = 1){
+
+  theta.post <- rep(NA, steps) # vector to store samples
+  theta.post[1] <- inits # initialize with starting value
+
+  for (t in 2:steps){ # loop over steps (starting at the 2nd)
+
+    theta_star <- move(theta.post[t-1], away) # propose a new value
+
+    # log-ratio of posterior density between candidate and current value
+    logR <- posterior(y, theta_star) -
+            posterior(y, theta.post[t-1])
+    R <- exp(logR) # back to non-log scale
+
+    X <- runif(1, 0, 1) # draw a uniform random number
+    theta.post[t] <- ifelse(X < R, # if draw < acceptance probability...
+                            theta_star, # ... accept proposed value
+                            theta.post[t-1]) # otherwise keep previous
+  }
+
+  return(theta.post) # return simulated sample
+}
+```
+
+We can now use `metropolis()` to run another chain, this time starting at 0.2:
+
+
+``` r
+theta.post2 <- metropolis(steps = 100, inits = 0.2) # start at 0.2
+```
+
+Note that we often talk about “running multiple MCMC chains” to diagnose convergence. In practice, these are independent realizations of the same Markov chain—like flipping the same coin multiple times, except with a more complicated distribution than Bernoulli.
+
+We then plot both chains together, as in Figure \@ref(fig:traceplot2):
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/traceplot2-1.png" alt="Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations. Two chains were run with different initial values, 0.5 in blue and 0.2 in yellow." width="90%" />
+<p class="caption">(\#fig:traceplot2)Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations. Two chains were run with different initial values, 0.5 in blue and 0.2 in yellow.</p>
+</div>
+
+Note that we do not obtain exactly the same results because the algorithm is stochastic. We observe the parallel evolution of two chains started from different initial values. If the two chains quickly meet and then oscillate around the same values, this indicates good convergence toward the desired stationary distribution. This is a key step in MCMC convergence diagnostics, which we will cover later in this chapter. To observe convergence over a longer period, we run a chain with 1,000 iterations. This gives a smoother trace plot showing chain stability, as in Figure \@ref(fig:traceplot3):
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/traceplot3-1.png" alt="Trace plot of simulated values of the survival probability \\(\\theta\\) across 1000 iterations." width="90%" />
+<p class="caption">(\#fig:traceplot3)Trace plot of simulated values of the survival probability \\(\\theta\\) across 1000 iterations.</p>
+</div>
+
+<!-- Same thing with three chains and animation! You can find the code to reproduce this figure at <https://gist.github.com/oliviergimenez/5ee33af9c8d947b72a39ed1764040bf3>. -->
+
+<!-- ![](images/mcmc-betabin.gif) -->
+
+With a large number of iterations, each chain should stabilize around its stationary distribution. Visually, we look for a dense, homogeneous, well-explored region—like a neatly mown lawn (that is an image).
+
+Once the stationary distribution is reached, you can treat the simulated values of the Markov chain as a sample from the posterior distribution and compute numerical summaries of the parameters (posterior mean, credible interval).
+
+When can we say that we have reached this stationary distribution? Once we have convergence, how many additional simulations do we need to obtain a good approximation of the posterior distribution of our parameters? I address these questions in the next section.
+
+## Assessing convergence {#convergence-diag}
+
+When applying an MCMC method, we need to determine how long it takes the Markov chain to converge to the target distribution, and how many additional iterations are required after convergence to obtain reliable Monte Carlo estimates of numerical summaries (posterior means, credible intervals).
+
+### Burn-in
+
+In practice, we discard the first values of the Markov chain and use only values simulated after convergence. The initial observations that we discard are generally called the burn-in (or warm-up) period.
+
+The simplest way to determine the length of the burn-in period is to inspect trace plots. Let us return to our example and look at Figure \@ref(fig:burnin), a trace plot for a chain starting at 0.99:
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/burnin-1.png" alt="Trace plot for a chain starting at 0.99. The shaded area illustrates a possible burn-in period." width="90%" />
+<p class="caption">(\#fig:burnin)Trace plot for a chain starting at 0.99. The shaded area illustrates a possible burn-in period.</p>
+</div>
+
+The chain starts at 0.99 and stabilizes quickly, with values oscillating around 0.3 from about iteration 100 onward. We can choose the shaded area as a burn-in period and discard the first 100 values. To be safe, one could use 250 or even 500 iterations as burn-in, provided it does not cost too much computation time, of course.
+
+Inspecting a trace plot from a single chain is useful, but we generally run multiple chains with different initial values to check that they all reach the same stationary distribution. This approach is formalized by the Brooks–Gelman–Rubin statistic (BGR), denoted $\hat{R}$, which measures the ratio between total variability (between chains plus within each chain) and within-chain variability. It is close in spirit to an $F$ test in an analysis of variance (here, a one-factor ANOVA where the factor levels are the chains). A value below 1.1 indicates likely convergence.
+
+Let us return to our example: we run two Markov chains with initial values 0.2 and 0.8, varying the number of iterations from 100 to 1000 in steps of 50, and we compute the BGR statistic using half the iterations as burn-in (Figure \@ref(fig:bgr)).
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/bgr-1.png" alt="Value of the Brooks–Gelman–Rubin (BGR) statistic as a function of the number of iterations. A value close to 1 suggests convergence." width="90%" />
+<p class="caption">(\#fig:bgr)Value of the Brooks–Gelman–Rubin (BGR) statistic as a function of the number of iterations. A value close to 1 suggests convergence.</p>
+</div>
+
+We obtain a BGR statistic close to 1 from about 300 iterations onward, suggesting that with a burn-in of 300 iterations, nothing indicates a convergence problem.
+
+It is important to remember that a value close to 1 for the BGR statistic is a necessary but not sufficient condition for convergence. In other words, this diagnostic cannot assert with certainty that the chain has converged; it simply indicates that we do not detect an obvious sign that it has not. My advice: always take the time to look at the trace plots.
+
+### Chain length
+
+What chain length is needed to obtain reliable parameter estimates? Keep in mind that successive steps of a Markov chain are not independent. This is called autocorrelation. Ideally, we want to minimize this autocorrelation.
+
+Here again, trace plots can diagnose autocorrelation issues. Returning to the survival example, Figure \@ref(fig:trace-away) shows trace plots (3000 iterations) for different values of the proposal normal standard deviation (parameter `away`) used to generate candidate values.
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/trace-away-1.png" alt="Trace plots for different values of the proposal standard deviation (away). Good mixing is observed with away = 1. The shaded gray area corresponds to a burn-in of 300 iterations." width="90%" />
+<p class="caption">(\#fig:trace-away)Trace plots for different values of the proposal standard deviation (away). Good mixing is observed with away = 1. The shaded gray area corresponds to a burn-in of 300 iterations.</p>
+</div>
+
+The very small and very large moves visible in the left and right panels lead to strong correlation between successive observations of the Markov chain, whereas a standard deviation equal to 1 (center) allows efficient exploration of the parameter space. This movement through parameter space is called mixing. Mixing is considered poor when the chain makes jumps that are too small or too large, and good otherwise.
+
+In addition to trace plots, autocorrelation function (ACF) plots provide a convenient way to visualize the strength of autocorrelation in a given sample. ACF plots show the correlation between successively sampled values separated by an increasing number of iterations, called the lag. In Figure \@ref(fig:acf), we obtain ACF plots for different proposal standard deviations using `forecast::ggAcf()`:
+
+<div class="figure" style="text-align: center">
+<img src="02-mcmcmethods_files/figure-html/acf-1.png" alt="Autocorrelation functions (ACF) for different proposal standard deviations. Low autocorrelation is a sign of good mixing. A burn-in of 300 iterations is applied." width="90%" />
+<p class="caption">(\#fig:acf)Autocorrelation functions (ACF) for different proposal standard deviations. Low autocorrelation is a sign of good mixing. A burn-in of 300 iterations is applied.</p>
+</div>
+
+In the left and right panels, autocorrelation is strong and decreases slowly with lag, and mixing is poor. In the central panel, autocorrelation is weak and decreases quickly with lag, and mixing is good.
+
+Autocorrelation is not necessarily a major problem. Highly correlated observations simply require a larger number of samples, and therefore longer simulations. But how many iterations do we need exactly? The effective sample size (`n.eff`) measures the useful length of the chain while accounting for autocorrelation. It is recommended to check `n.eff` for each parameter of interest, as well as for any relevant combination of parameters. In general, we consider that we need at least $\text{n.eff} \geq 400$ independent observations to obtain reliable Monte Carlo estimates of model parameters. In the animal survival example, `n.eff` can be computed using the `effectiveSize()` function from the `coda` package:
+
+
+``` r
+# Generate chains for three proposal standard deviations
+d <- tibble(away = c(0.1, 1, 10)) %>%
+     mutate(accepted_traj = map(away,
+                               metropolis,
+                               steps = n_steps,
+                               inits = 0.1)) %>%
+     unnest(accepted_traj) %>%
+     mutate(proposal_sd = str_c("SD = ", away),
+            iter = rep(1:n_steps, times = 3))
+
+# Compute effective sample size
+neff1 <- coda::effectiveSize(d$accepted_traj[d$proposal_sd=="SD = 0.1"][-c(1:300)])
+neff2 <- coda::effectiveSize(d$accepted_traj[d$proposal_sd=="SD = 1"][-c(1:300)])
+neff3 <- coda::effectiveSize(d$accepted_traj[d$proposal_sd=="SD = 10"][-c(1:300)])
+tibble("SD" = c(0.1, 1, 10),
+       "n.eff" = round(c(neff1, neff2, neff3)))
+#> # A tibble: 3 × 2
+#>      SD n.eff
+#>   <dbl> <dbl>
+#> 1   0.1    81
+#> 2   1     524
+#> 3  10      77
+```
+
+As expected, `n.eff` is smaller than the total number of MCMC iterations (3000) because of autocorrelation. Only when the proposal standard deviation equals 1 is mixing good (`n.eff` $\geq 400$), yielding a satisfactory effective sample size.
+
+### What if you have convergence problems?
+
+When diagnosing the convergence of an MCMC chain, you will (very) often encounter difficulties. This section offers a few practical tips that I hope will be useful.
+
+When mixing is poor and the effective sample size is low, it may be enough to increase the burn-in period and/or increase the number of simulations. Using more informative priors can also facilitate the convergence of Markov chains by helping the MCMC algorithm explore the parameter space more efficiently (Chapter \@ref(prior)). In the same spirit, choosing better initial values to start the chain can also help. A useful strategy is to use estimates from a simpler model for which your MCMC chains already converge.
+
+If convergence problems persist, there is often an issue with the model itself. A bug in the code? A typo? An error in the equations? As is often the case in programming, the best way to identify the problem is to reduce the model’s complexity and start again from a simpler model until you find what is wrong.
+
+Another piece of advice is to think of your model first and foremost as a data generator. Simulate data from this model using realistic parameter values, and then try to recover those parameters by fitting the model to the simulated data. This approach will help you better understand how the model works, what it does not do, and how much data are needed to obtain reliable parameter estimates. We will return to this technique in Chapters \@ref(lms) and \@ref(glms).
+
+## In summary
+
++ The idea of Markov chain Monte Carlo (MCMC) methods is to simulate values from a Markov chain whose stationary distribution is precisely the posterior distribution of the parameters we want to estimate.
+
++ In practice, we run several Markov chains starting from dispersed initial values.
+
++ We discard the first iterations (warm-up or burn-in phase) and consider that convergence is reached when all chains converge to the same regime.
+
++ From that point on, we run the chains long enough and then compute Monte Carlo estimates of numerical summaries (for example, posterior means or credible intervals) of the parameters.
+
++ Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter \@ref(logiciels) we will see how to make this easier.

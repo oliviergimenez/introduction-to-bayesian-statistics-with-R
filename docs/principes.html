@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 1 The Bayesian approach | Introduction to Bayesian Statistics with R</title>
+<meta name="author" content="Olivier Gimenez">
+<meta name="description" content="1.1 Introduction In this chapter, we lay the foundations by revisiting a few probability concepts that will be useful later on. I introduce the key ideas of Bayesian statistics through a simple...">
+<meta name="generator" content="bookdown 0.43 with bs4_book()">
+<meta property="og:title" content="Chapter 1 The Bayesian approach | Introduction to Bayesian Statistics with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://oliviergimenez.github.io/introduction-to-bayesian-statistics-with-R/principes.html">
+<meta property="og:description" content="1.1 Introduction In this chapter, we lay the foundations by revisiting a few probability concepts that will be useful later on. I introduce the key ideas of Bayesian statistics through a simple...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 1 The Bayesian approach | Introduction to Bayesian Statistics with R">
+<meta name="twitter:description" content="1.1 Introduction In this chapter, we lay the foundations by revisiting a few probability concepts that will be useful later on. I introduce the key ideas of Bayesian statistics through a simple...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><link href="libs/Roboto-0.4.10/font.css" rel="stylesheet">
+<script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-MTKSQWQE5K"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-MTKSQWQE5K');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+          margin-bottom: 0em;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="Using NIMBLE and brms">Introduction to Bayesian Statistics with R</a>:
+        <small class="text-muted">Using NIMBLE and brms</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="active" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
+<li><a class="" href="conclusions.html">Conclusions</a></li>
+<li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="principes" class="section level1" number="1">
+<h1>
+<span class="header-section-number">1</span> The Bayesian approach<a class="anchor" aria-label="anchor" href="#principes"><i class="fas fa-link"></i></a>
+</h1>
+<div id="introduction-1" class="section level2" number="1.1">
+<h2>
+<span class="header-section-number">1.1</span> Introduction<a class="anchor" aria-label="anchor" href="#introduction-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this chapter, we lay the foundations by revisiting a few probability concepts that will be useful later on. I introduce the key ideas of Bayesian statistics through a simple example that helps fix ideas, and that we will often use throughout the book. We will also draw parallels between classical (or frequentist) statistics and Bayesian statistics.</p>
+</div>
+<div id="bayes-theorem" class="section level2" number="1.2">
+<h2>
+<span class="header-section-number">1.2</span> Bayes’ theorem<a class="anchor" aria-label="anchor" href="#bayes-theorem"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let us not delay any further and get to the heart of the matter. Bayesian statistics relies on Bayes’ theorem (or Bayes’ formula), whose first formulation is attributed to the mathematician and Reverend Thomas Bayes. This theorem was published in 1763, two years after Bayes’ death, thanks to the efforts of his friend Richard Price. It was also discovered independently by Pierre-Simon Laplace.</p>
+<p>Bayes’ theorem concerns conditional probabilities, which can sometimes be a bit tricky to understand. The conditional probability of an event A given an event B, denoted <span class="math inline">\(\Pr(A \mid B)\)</span>, is the probability that A occurs, revised by taking into account the additional information that event B has occurred. For example, imagine that one of your friends rolls a (fair) die and asks you for the probability that the result is a six (A). Your answer is 1/6 because each face of the die has the same chance of appearing. Now, imagine that you are told that the number obtained is even (B) before you answer. Since there are only three even numbers, and only one of them is six, you can revise your answer: <span class="math inline">\(\Pr(A \mid B) = 1/3\)</span>.</p>
+<p>Do you see how the additional information (here, knowing that the number is even) changes the estimate? This is exactly the kind of reasoning that Bayes’ theorem formalizes and generalizes: it makes it possible to compute the probability of an event A given that another event B has occurred. More precisely, Bayes’ theorem gives you <span class="math inline">\(\Pr(A \mid B)\)</span> using the marginal probabilities <span class="math inline">\(\Pr(A)\)</span> and <span class="math inline">\(\Pr(B)\)</span> and the probability <span class="math inline">\(\Pr(B \mid A)\)</span>:</p>
+<p><span class="math display">\[\Pr(A \mid B) = \displaystyle{\frac{ \Pr(B \mid A) \; \Pr(A)}{\Pr(B)}}.\]</span></p>
+<p>We talk about a marginal probability when we are interested in the probability of an event “on its own”, without any particular condition. For example, <span class="math inline">\(\Pr(A)\)</span> or <span class="math inline">\(\Pr(B)\)</span> are the overall chances of A or of B, without taking anything else into account. We say “marginal” because, if you made a table with all possible combinations (for instance, die outcomes classified as even/odd and as “six/not six”), then <span class="math inline">\(\Pr(A)\)</span> and <span class="math inline">\(\Pr(B)\)</span> would be obtained by adding the cells in a row or a column—i.e., what you read in the margin of the table.</p>
+<p>Bayes’ theorem is often seen as a way to go from an effect B back to an unknown cause A, by knowing the probability of the effect B given the cause A. Think, for example, of a situation where a medical diagnosis is needed, with A an unknown disease and B symptoms; the physician knows the risks of having certain symptoms depending on several diseases, i.e. <span class="math inline">\(\Pr(\text{symptoms}|\text{disease})\)</span>, and wishes to infer the probability of having a disease given the symptoms, i.e. <span class="math inline">\(\Pr(\text{disease}|\text{symptoms})\)</span>. This way of “reversing” <span class="math inline">\(\Pr(B \mid A)\)</span> into <span class="math inline">\(\Pr(A \mid B)\)</span> is why Bayesian reasoning is sometimes called “inverse probability”.</p>
+<p>Rather than using letters at the risk of getting confused, I find it easier to remember Bayes’ theorem written like this:</p>
+<p><span class="math display">\[\Pr(\text{hypothesis} \mid \text{data}) = \frac{ \Pr(\text{data} \mid \text{hypothesis}) \; \Pr(\text{hypothesis})}{\Pr(\text{data})}.\]</span></p>
+<p>The hypothesis can be a parameter such as the probability that a disease occurs, or regression coefficients linking this probability to risk factors (for example, place of residence, smoking). Bayes’ theorem tells us how to obtain the probability of a hypothesis from the available data.<br>
+This is relevant because, think about it: this is exactly what the scientific method does. We want to know how plausible a hypothesis is given data that we have collected, and perhaps compare several hypotheses with one another. From this point of view, Bayesian reasoning aligns with scientific reasoning, which probably explains why the Bayesian framework feels so natural for doing and understanding statistics.</p>
+<p>You might then ask why Bayesian statistics is not the norm. For a long time, implementing Bayes’ theorem was limited by computational difficulties, as we will see in the next chapter. Fortunately, increases in computing power and the development of new algorithms have led to a marked rise of the Bayesian approach over the past thirty years.</p>
+</div>
+<div id="statbayes" class="section level2" number="1.3">
+<h2>
+<span class="header-section-number">1.3</span> What is Bayesian statistics?<a class="anchor" aria-label="anchor" href="#statbayes"><i class="fas fa-link"></i></a>
+</h2>
+<p>Typical statistical problems consist in estimating one (or several) parameters from available data. Let us denote this parameter (or these parameters) generically, say <span class="math inline">\(\text{theta}\)</span>. To estimate <span class="math inline">\(\text{theta}\)</span>, you are probably more familiar with the frequentist approach than with the Bayesian approach. The frequentist approach, in particular maximum likelihood estimation, assumes that parameters are fixed but unknown. Classical estimators are therefore generally point values; for instance, an estimator of the probability of obtaining a face of a die is the number of times that face was observed divided by the number of times the die was rolled. The Bayesian approach assumes that parameters are not fixed and follow an unknown distribution. A probability distribution is a mathematical expression that gives the probability that a random variable takes certain values. It can be discrete (for example, the Bernoulli distribution, the binomial distribution, or the Poisson distribution) or continuous (such as the normal or Gaussian distribution).</p>
+<p>The Bayesian approach rests on the idea that you start with some knowledge about the system even before studying it yourself. Then, you collect data and update this prior knowledge based on the observations. This updating process relies on Bayes’ theorem. In simplified form, taking <span class="math inline">\(A = \text{theta}\)</span> and <span class="math inline">\(B = \text{data}\)</span>, Bayes’ theorem makes it possible to estimate the parameter <span class="math inline">\(\text{theta}\)</span> from the data as follows:</p>
+<p><span class="math display">\[\Pr(\text{theta} \mid \text{data}) = \frac{\Pr(\text{data} \mid \text{theta}) \times \Pr(\text{theta})}{\Pr(\text{data})}.\]</span></p>
+<p>Let us take a moment to review each term in this formula.</p>
+<p>On the left, we have <span class="math inline">\(\Pr(\text{theta} \mid \text{data})\)</span>, the posterior distribution: the probability of <span class="math inline">\(\text{theta}\)</span> given the data. It represents what you know about <span class="math inline">\(\text{theta}\)</span> after seeing the data. This is the basis of inference and it is precisely what you are looking for: a distribution, possibly multivariate if you have several parameters.</p>
+<p>On the right, we have <span class="math inline">\(\Pr(\text{data} \mid \text{theta})\)</span>, the likelihood. The probability of the data given <span class="math inline">\(\text{theta}\)</span>. This quantity is the same as in the classical or frequentist approach. Yes: Bayesian and frequentist approaches share the same component, the likelihood, which explains why their results are often close. The likelihood expresses the information contained in your data, given a model parameterized by <span class="math inline">\(\text{theta}\)</span>. We will come back to it in Section <a href="principes.html#maxvrais">1.5</a>.</p>
+<p>Next, we have <span class="math inline">\(\Pr(\text{theta})\)</span>, the prior distribution. This quantity represents what you know about <span class="math inline">\(\text{theta}\)</span> before seeing the data. This prior distribution should not depend on the data; in other words, one should not use the data to construct it. It can be vague or non-informative if you know nothing about <span class="math inline">\(\text{theta}\)</span>. Often, you never really start from zero, and ideally you would like your prior to reflect existing knowledge. I will discuss priors in more detail in Chapter <a href="#prior"><strong>??</strong></a>.</p>
+<p>Finally, there is the denominator <span class="math inline">\(\Pr(\text{data})\)</span>, sometimes called the average likelihood, averaged with respect to the prior, because it is obtained by integrating the likelihood under the prior distribution:
+<span class="math inline">\({\Pr(\text{data}) = \int{\Pr(\text{data} \mid \text{theta}) \times \Pr(\text{theta}) \, d\text{theta}}}\)</span>.
+This quantity normalizes the posterior distribution so that it integrates to 1. In other words, since <span class="math inline">\(\int{\Pr(\text{theta} \mid \text{data}) \, d\text{theta}} = 1\)</span> because the integral of a probability density equals 1, we have
+<span class="math inline">\(\displaystyle \int{\frac{\Pr(\text{data} \mid \text{theta}) \times \Pr(\text{theta})}{\Pr(\text{data})} \, d\text{theta} } = 1\)</span>.
+And since <span class="math inline">\(\Pr(\text{data})\)</span> does not depend on <span class="math inline">\(\text{theta}\)</span>, we have
+<span class="math inline">\(\Pr(\text{data}) = \int{\Pr(\text{data} \mid \text{theta}) \times \Pr(\text{theta}) \, d\text{theta}}\)</span>.
+This is an integral whose dimension equals the number of parameters <span class="math inline">\(\text{theta}\)</span> to estimate: for two parameters, a double integral; for three parameters, a triple integral; and so on. However, beyond three dimensions, it becomes difficult, even impossible, to compute this integral. This is one of the reasons why the Bayesian approach was not used earlier, and why we need algorithms to estimate posterior distributions, as I explain in Chapter <a href="mcmc.html#mcmc">2</a>. In the meantime, we will work through a relatively simple example in which the posterior distribution has an explicit form.</p>
+</div>
+<div id="a-running-example" class="section level2" number="1.4">
+<h2>
+<span class="header-section-number">1.4</span> A running example<a class="anchor" aria-label="anchor" href="#a-running-example"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let us take a concrete example to fix ideas. I work on the coypu (<em>Myocastor coypus</em>) (Figure <a href="principes.html#fig:ragondinos">1.1</a>), a semi-aquatic rodent native to South America, introduced into Europe for fur farming. It is now considered an invasive alien species, because of the damage it causes in wetlands (bank erosion, destruction of vegetation) and its possible role in transmitting leptospirosis to humans, a potentially severe bacterial infection transmitted through water. Thanks to its high fecundity and good adaptation to temperate climates, the coypu has proliferated rapidly.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:ragondinos"></span>
+<img src="images/ragondin2.jpg" alt="Photograph of coypus (Myocastor coypus) taken in the Lez watershed near Montpellier, France. Credits: Yann Raulet." width="90%"><p class="caption">
+Figure 1.1: Photograph of coypus (Myocastor coypus) taken in the Lez watershed near Montpellier, France. Credits: Yann Raulet.
+</p>
+</div>
+<p>One of the questions I am interested in is estimating the probability of surviving the winter, coypus being particularly sensitive to cold. To do this, we equip several individuals with a GPS tag at the beginning of winter, say here <span class="math inline">\(n = 57\)</span>. At the end of winter, we observe that <span class="math inline">\(y = 19\)</span> coypus are still alive. The goal is to estimate the winter survival probability, which we denote <span class="math inline">\(\text{theta}\)</span>. Here are the data:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">19</span> <span class="co"># number of individuals that survived the winter</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">57</span> <span class="co"># number of individuals monitored at the start of winter</span></span></code></pre></div>
+<p>You are probably thinking that, with this information, we can already estimate a survival probability. Intuitively, we think of the proportion of individuals that survived, i.e. <span class="math inline">\(19/57\)</span>. And you are not wrong. This is a reasonable estimate of <span class="math inline">\(\text{theta}\)</span>, the winter survival probability. Let us now try to formalize this intuition, in order to better understand what it represents, and what it assumes.</p>
+<p>As mentioned above, the likelihood is a central concept found in both frequentist and Bayesian approaches. So let us start by constructing this likelihood. To do that, we need to make a few assumptions.</p>
+<p>First, we assume that individuals are independent, meaning that the survival of one coypu does not influence the survival of other coypus. This is a strong assumption, especially when we know that a female can reproduce two to three times per year and give birth to up to ten offspring that depend on her early in life. But, in modeling, it is often better to start simple.</p>
+<p>Second, we assume that all individuals have the same survival probability. Again, this is a simplification: we know, for example, that juvenile mortality is higher than adult mortality.</p>
+<p>Under these two assumptions, the number <span class="math inline">\(y\)</span> of animals still alive at the end of winter follows a binomial distribution, with <span class="math inline">\(\text{theta}\)</span> as the probability of success (survival) and <span class="math inline">\(n\)</span> as the number of trials (monitored individuals). We write <span class="math inline">\(y \sim \text{Bin}(n, \text{theta})\)</span>. The binomial distribution is in fact the sum of several independent Bernoulli trials, as in the classic heads-or-tails example. At each trial—here, the release of a GPS-tagged coypu at the beginning of winter—we assume a probability <span class="math inline">\(\text{theta}\)</span> of success, i.e. surviving the winter, and failure, i.e. dying from cold. If all these trials are independent and have the same probability of success (our assumptions), then the number of successes, or the number of coypus alive at the end of winter, follows a binomial distribution (see also Chapter <a href="#glms"><strong>??</strong></a>). I provide examples of Bernoulli and binomial draws in Figure <a href="principes.html#fig:bernoulli-binomiale">1.2</a>.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:bernoulli-binomiale"></span>
+<img src="01-principles_files/figure-html/bernoulli-binomiale-1.png" alt="Discrete probability distributions, Bernoulli and binomial, illustrated with 100 simulations (random draws generated by computer). On the top row, we show the observed frequency from a Bernoulli draw for different values of survival probability \(\theta\). On the bottom row, we show histograms for a binomial draw with 50 trials and different values of survival probability \(\theta\)." width="90%"><p class="caption">
+Figure 1.2: Discrete probability distributions, Bernoulli and binomial, illustrated with 100 simulations (random draws generated by computer). On the top row, we show the observed frequency from a Bernoulli draw for different values of survival probability <span class="math inline">\(\theta\)</span>. On the bottom row, we show histograms for a binomial draw with 50 trials and different values of survival probability <span class="math inline">\(\theta\)</span>.
+</p>
+</div>
+<p>As an aside, it is easy to get mixed up between all the terms used to describe a Bernoulli and a binomial distribution (and the normal distribution): you can remember that a probability is a number, a distribution is a law, and a density is the function that represents it.</p>
+</div>
+<div id="maxvrais" class="section level2" number="1.5">
+<h2>
+<span class="header-section-number">1.5</span> Maximum likelihood<a class="anchor" aria-label="anchor" href="#maxvrais"><i class="fas fa-link"></i></a>
+</h2>
+<p>In the classical (or frequentist) approach, we estimate the survival probability <span class="math inline">\(\text{theta}\)</span> using the maximum likelihood method. But what does that mean in practice? It means finding the value of <span class="math inline">\(\text{theta}\)</span> that makes the observed data most likely. In other words, since the data are what they are—they have been observed—we look for the value of <span class="math inline">\(\text{theta}\)</span> that maximizes the probability that this dataset was generated.</p>
+<p>How do we justify this rather intuitive idea mathematically? Read carefully the end of the previous paragraph. The idea of looking for the value that gives the largest probability amounts to maximizing something. But what exactly? The probability of the data, given a certain model parameterized by <span class="math inline">\(\text{theta}\)</span>—in other words, the likelihood, or <span class="math inline">\(\Pr(\text{data}|\text{theta})\)</span>, which we saw in Section <a href="principes.html#statbayes">1.3</a>. Classical estimation therefore relies on maximizing the likelihood—or rather the likelihood function, i.e. the likelihood considered as a function of <span class="math inline">\(\text{theta}\)</span>.</p>
+<p>In our case, we have a binomial experiment: we follow <span class="math inline">\(n\)</span> coypus over the winter, each having a probability <span class="math inline">\(\text{theta}\)</span> of surviving. We know the probability of each possible outcome (the probability mass function). For example, the probability that no coypu survives is <span class="math inline">\((1-\text{theta})^n\)</span>, because each of the <span class="math inline">\(n\)</span> individuals dies with probability <span class="math inline">\(1-\text{theta}\)</span>. If we take, for example, a survival probability of 0.5, we have <span class="math inline">\((1-0.5)^{57} \approx 0\)</span>. We can compute this probability in R with the <code><a href="https://rdrr.io/r/stats/Binomial.html">dbinom()</a></code> function:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, size <span class="op">=</span> <span class="fl">57</span>, prob <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6.938894e-18</span></span></code></pre></div>
+<p>where the first argument <code>x = 0</code> corresponds to no coypu alive. Conversely, the probability that all survive is <span class="math inline">\(\text{theta}^n\)</span>, which has the same value. You can check in <code>R</code> with <code>dbinom(x = 57, size = 57, prob = 0.5)</code>. If exactly one coypu survives, then one of the <span class="math inline">\(n\)</span> survives with probability <span class="math inline">\(\text{theta}\)</span>, and the other <span class="math inline">\(n-1\)</span> die with probability <span class="math inline">\((1-\text{theta})^{n-1}\)</span>. Since any of the <span class="math inline">\(n\)</span> coypus can be the one that survives, we obtain a total probability of <span class="math inline">\(n,\text{theta},(1-\text{theta})^{n-1}\)</span>. We can compute this probability with <code>dbinom(x = 1, size = 57, prob = 0.5)</code>. More generally, the probability that <span class="math inline">\(y\)</span> individuals survive is given by <span class="math inline">\(\displaystyle \binom{n}{y}\text{theta}^y(1-\text{theta})^{n-y}\)</span>. If we consider this expression as a function of <span class="math inline">\(\text{theta}\)</span> (and not of <span class="math inline">\(y\)</span>), we obtain the likelihood function <span class="math inline">\(\displaystyle \mathcal{L}(\text{theta}) = \binom{n}{y} \text{theta}^y (1 - \text{theta})^{n - y}\)</span>. The term <span class="math inline">\(\displaystyle \binom{n}{y}\)</span> is called the binomial coefficient and is read “<span class="math inline">\(y\)</span> out of <span class="math inline">\(n\)</span>”. It corresponds to the number of different ways to choose <span class="math inline">\(y\)</span> survivors among the <span class="math inline">\(n\)</span> coypus, without regard to their order.</p>
+<p>We can plot this likelihood in <code>R</code> as in Figure <a href="principes.html#fig:survie-vraisemblance-mle">1.3</a>:</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:survie-vraisemblance-mle"></span>
+<img src="01-principles_files/figure-html/survie-vraisemblance-mle-1.png" alt="Likelihood function for the winter survival probability of the coypu, computed from $y=19$ survivors out of $n=57$ individuals monitored by GPS. The maximum likelihood estimate is indicated by the red dashed line." width="90%"><p class="caption">
+Figure 1.3: Likelihood function for the winter survival probability of the coypu, computed from <span class="math inline">\(y=19\)</span> survivors out of <span class="math inline">\(n=57\)</span> individuals monitored by GPS. The maximum likelihood estimate is indicated by the red dashed line.
+</p>
+</div>
+<p>Our goal is to find the value of <span class="math inline">\(\text{theta}\)</span> that maximizes this function. In other words, we look for the survival value (on the x-axis in Figure <a href="principes.html#fig:survie-vraisemblance-mle">1.3</a>) that maximizes the likelihood (on the y-axis). This value corresponds to the maximum likelihood estimator, often denoted <span class="math inline">\(\hat{\text{theta}}\)</span>. To do this, it is often more convenient to work with the logarithm of the likelihood (the log-likelihood), because sums are numerically more stable and easier to differentiate than products:</p>
+<p><span class="math display">\[
+\ell(\theta) = \log \mathcal{L}(\theta) = \log \binom{n}{y} + y \log \theta + (n - y) \log (1 - \theta).
+\]</span>
+The first term, <span class="math inline">\(\displaystyle \log \binom{n}{y}\)</span>, does not depend on <span class="math inline">\(\text{theta}\)</span>, so we can ignore it in what follows. We then differentiate the log-likelihood with respect to <span class="math inline">\(\text{theta}\)</span>:</p>
+<p><span class="math display">\[
+\displaystyle \frac{d\ell(\theta)}{d\theta} = \frac{y}{\theta} - \frac{n - y}{1 - \theta}.
+\]</span></p>
+<p>We look for the value of <span class="math inline">\(\text{theta}\)</span> that makes this derivative equal to zero:</p>
+<p><span class="math display">\[
+\frac{y}{\theta} - \frac{n - y}{1 - \theta} = 0.
+\]</span></p>
+<p>After a few simplifications, we obtain that the maximum likelihood estimator <span class="math inline">\(\hat{\text{theta}}\)</span> is:</p>
+<p><span class="math display">\[
+\hat{\theta} = \frac{y}{n}.
+\]</span></p>
+<p>This result matches our initial intuition: the maximum likelihood estimator is the proportion of individuals that survived, i.e. <span class="math inline">\(19/57 \approx 0.333\)</span>. We can visualize this result in Figure <a href="principes.html#fig:survie-vraisemblance-mle">1.3</a>, where the maximum likelihood estimate is indicated by the red dashed line.</p>
+<p>In practice, models contain multiple parameters—dozens or even hundreds—and we cannot apply the same analytic method to maximize the likelihood and find the maximum likelihood estimators. Instead, we use iterative optimization algorithms that solve the problem for us, adjusting step by step an initial value until they find the one that maximizes the likelihood. For example, in R, we can obtain exactly the same result by using a logistic regression without covariates (see Chapter <a href="#glms"><strong>??</strong></a>):</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">n</span> <span class="op">-</span> <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="va">binomial</span><span class="op">)</span></span>
+<span><span class="va">theta_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">theta_hat</span></span>
+<span><span class="co">#&gt; (Intercept) </span></span>
+<span><span class="co">#&gt;   0.3333333</span></span></code></pre></div>
+<p>The direct calculation <span class="math inline">\(\hat{\text{theta}}=y/n\)</span> and the result of calling the glm function are consistent: they give the same value.</p>
+</div>
+<div id="and-in-the-bayesian-framework" class="section level2" number="1.6">
+<h2>
+<span class="header-section-number">1.6</span> And in the Bayesian framework?<a class="anchor" aria-label="anchor" href="#and-in-the-bayesian-framework"><i class="fas fa-link"></i></a>
+</h2>
+<p>In the Bayesian approach, we start by expressing our prior knowledge about the quantity we want to estimate—here, the winter survival probability <code>theta</code>. We know that <code>theta</code> is a continuous variable between 0 and 1. A natural prior distribution in this case is the beta distribution. The beta distribution is defined by two parameters, <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, which control its shape:</p>
+<p><span class="math display">\[
+q(\theta \mid a, b) = \frac{1}{\text{Beta}(a, b)}{\theta^{a - 1}} {(1-\theta)^{b - 1}}
+\]</span></p>
+<p>with:</p>
+<p><span class="math display">\[
+\text{Beta}(a, b) = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}, \quad \Gamma(n) = (n-1)!
+\]</span></p>
+<p>You can forget these equations if you are not comfortable with them. Let us instead visualize this distribution as in Figure <a href="principes.html#fig:beta-exemples">1.4</a>:</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:beta-exemples"></span>
+<img src="01-principles_files/figure-html/beta-exemples-1.png" alt="Examples of beta distributions for different values of parameters $a$ and $b$. In each panel, the shaded areas illustrate the probability of observing a value within a given interval." width="90%"><p class="caption">
+Figure 1.4: Examples of beta distributions for different values of parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. In each panel, the shaded areas illustrate the probability of observing a value within a given interval.
+</p>
+</div>
+<p>Each panel of the figure shows the shape of a beta distribution for a given pair of parameters <span class="math inline">\((a, b)\)</span>. Several characteristic behaviors can be observed.</p>
+<ul>
+<li>Beta(1,1) (top left) corresponds to the uniform distribution between 0 and 1: all values of theta between 0 and 1 are considered equally likely. The density is constant, which means that the probability of observing a value between 0.1 and 0.2 is the same as that of observing one between 0.8 and 0.9. This probability is the area of the rectangle bounded by the red curve and the vertical lines at 0.1 and 0.2 (or 0.8 and 0.9), i.e. the red shaded areas. This corresponds to a situation with no prior knowledge.</li>
+<li>Beta(2,1) and Beta(1,2) represent asymmetric knowledge: the former is biased toward values close to 1, the latter toward values close to 0. The probability of observing a value between 0.1 and 0.2 is smaller than that of observing one between 0.8 and 0.9, and vice versa.</li>
+<li>Beta(2,2) is symmetric but puts more weight on central values than a uniform distribution. The probability of observing a value between 0.1 and 0.2 is smaller than that of observing one between 0.5 and 0.6.</li>
+<li>Beta(10,10) represents knowledge that is highly concentrated around 0.5: it is a very informative prior. The probability of observing a value between 0.2 and 0.3 is much smaller than that of observing one between 0.5 and 0.6.</li>
+<li>Beta(0.8,0.8) illustrates a U-shaped (bathtub-shaped) distribution that favors extreme values (close to 0 or to 1). The probabilities of observing a value between 0 and 0.1 and between 0.9 and 1 are larger than that of observing one between 0.45 and 0.55.</li>
+</ul>
+<p>These examples make it possible to visualize how parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> influence the shape of the prior. How do we go from this prior to the posterior distribution?</p>
+<p>We assume that <span class="math inline">\(\theta \sim \text{Beta}(a, b)\)</span> and we observed <span class="math inline">\(y = 19\)</span> survivors among <span class="math inline">\(n = 57\)</span> individuals. The likelihood is <span class="math inline">\(\displaystyle \binom{n}{y}\theta^y(1 - \theta)^{n - y}\)</span>. For now, we will ignore the denominator <span class="math inline">\(\Pr(y)\)</span> in Bayes’ theorem; we will see in the next chapter why. Thus, the posterior is proportional to the product of the likelihood and the prior:
+<span class="math inline">\(\Pr(\theta \mid y) \propto \Pr(y \mid \theta) \times \Pr(\theta)\)</span>.
+In our case, we multiply the likelihood and the prior term by term, and by rearranging the terms in <span class="math inline">\(\theta\)</span> and <span class="math inline">\(1-\theta\)</span>, we obtain:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\Pr(\theta \mid y) &amp;\propto \underbrace{\theta^y (1 - \theta)^{n - y}}_{\text{binomial likelihood}} \times \underbrace{\theta^{a - 1} (1 - \theta)^{b - 1}}_{\text{beta prior}} \\
+&amp;\propto \underbrace{\theta^{a + y - 1} (1 - \theta)^{b + n - y - 1}}_{\text{yet another beta distribution}}
+\end{aligned}
+\]</span></p>
+<p>In other words, we again obtain a beta distribution, with updated parameters <span class="math inline">\(a + y\)</span> and <span class="math inline">\(b + n - y\)</span>. We say that the binomial and beta distributions are conjugate: when we use a beta distribution as the prior for a probability parameter in a binomial model, the resulting posterior distribution is also a beta distribution. If we use a uniform prior between 0 and 1 (i.e. Beta(1,1)), we obtain that the posterior distribution of winter survival is
+<span class="math inline">\(\text{Beta}(1+19, 1+57-19) = \text{Beta}(20, 39)\)</span>.
+Moreover, the posterior distribution is known, which greatly facilitates computations and interpretation. For example, we know that the mean of <span class="math inline">\(\text{Beta}(a, b)\)</span> is <span class="math inline">\(\displaystyle \frac{a}{a+b}\)</span>, i.e. <span class="math inline">\(\frac{20}{59} \approx 0.339\)</span>. We can compare this value to the maximum likelihood estimator <span class="math inline">\(19/57 \approx 0.333\)</span>. We can also visualize the posterior distribution as in Figure <span class="citation">(<a href="#ref-ref"><strong>ref?</strong></a>)</span>(fig:posterior-survie), since we know the equation of the beta density:</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:posterior-survie"></span>
+<img src="01-principles_files/figure-html/posterior-survie-1.png" alt="Distribution a priori uniforme (rouge) et distribution a posteriori (noire) de la probabilité de survie hivernale du ragondin. Le pointillé bleu correspond à l'estimateur du maximum de vraisemblance." width="90%"><p class="caption">
+Figure 1.5: Distribution a priori uniforme (rouge) et distribution a posteriori (noire) de la probabilité de survie hivernale du ragondin. Le pointillé bleu correspond à l’estimateur du maximum de vraisemblance.
+</p>
+</div>
+<p>More generally, when we have enough data, Bayesian and frequentist estimators tend to be very close. Intuitively, the data end up “dominating” the prior information. Roughly speaking, the mode of the posterior distribution (the value at which the density is maximal) corresponds exactly to the maximum likelihood estimator.</p>
+<p>This illustrates the link between the two approaches and the central role of the likelihood in statistics: it is the fundamental common component of Bayesian and frequentist approaches.</p>
+</div>
+<div id="in-summary" class="section level2" number="1.7">
+<h2>
+<span class="header-section-number">1.7</span> In summary<a class="anchor" aria-label="anchor" href="#in-summary"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>Bayes’ theorem is a tool for updating knowledge.</li>
+<li>Bayesian statistics relies on the likelihood and a prior distribution for the model parameters.</li>
+<li>Frequentist statistics provides a point estimator, whereas Bayesian statistics estimates a distribution for each parameter.</li>
+<li>Often, classical and Bayesian approaches yield similar estimates.</li>
+<li>In some cases, the posterior distribution is explicit (for example, in the case of beta/binomial conjugacy).</li>
+<li>In most cases, we will need to use simulations to obtain the posterior distribution, as we will see in Chapter <a href="mcmc.html#mcmc">2</a>.</li>
+</ul>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="index.html">Introduction</a></div>
+<div class="next"><a href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#principes"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="nav-link" href="#introduction-1"><span class="header-section-number">1.1</span> Introduction</a></li>
+<li><a class="nav-link" href="#bayes-theorem"><span class="header-section-number">1.2</span> Bayes’ theorem</a></li>
+<li><a class="nav-link" href="#statbayes"><span class="header-section-number">1.3</span> What is Bayesian statistics?</a></li>
+<li><a class="nav-link" href="#a-running-example"><span class="header-section-number">1.4</span> A running example</a></li>
+<li><a class="nav-link" href="#maxvrais"><span class="header-section-number">1.5</span> Maximum likelihood</a></li>
+<li><a class="nav-link" href="#and-in-the-bayesian-framework"><span class="header-section-number">1.6</span> And in the Bayesian framework?</a></li>
+<li><a class="nav-link" href="#in-summary"><span class="header-section-number">1.7</span> In summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/blob/master/01-principles.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/edit/master/01-principles.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-22.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>Ce livre a été généré avec le <a class="text-light" href="https://bookdown.org">package R bookdown</a>.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

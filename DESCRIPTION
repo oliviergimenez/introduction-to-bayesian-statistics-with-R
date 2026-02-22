@@ -1,0 +1,22 @@
+Package: bayesian-statistics
+Title: Introduction to Bayesian statistics with R
+Version: 0.1.0
+Authors@R:
+    person(given = "Olivier", family = "Gimenez", role = c("aut", "cre"),
+           email = "olivier.gimenez@cefe.cnrs.fr")
+Description: Material to learn Bayesian statistics
+Encoding: UTF-8
+Depends: R (>= 4.0.0)
+Imports:
+    bookdown,
+    tidyverse,
+    nimble,
+    brms,
+    MCMCvis,
+    posterior,
+    lme4,
+    visreg
+Suggests:
+    knitr,
+    rmarkdown
+License: CC-BY-NC-SA-4.0

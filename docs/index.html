@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Introduction | Introduction to Bayesian Statistics with R</title>
+<meta name="author" content="Olivier Gimenez">
+<meta name="description" content="Introduction to Bayesian statistics with R">
+<meta name="generator" content="bookdown 0.43 with bs4_book()">
+<meta property="og:title" content="Introduction | Introduction to Bayesian Statistics with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://oliviergimenez.github.io/introduction-to-bayesian-statistics-with-R/">
+<meta property="og:description" content="Introduction to Bayesian statistics with R">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Introduction | Introduction to Bayesian Statistics with R">
+<meta name="twitter:description" content="Introduction to Bayesian statistics with R">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><link href="libs/Roboto-0.4.10/font.css" rel="stylesheet">
+<script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-MTKSQWQE5K"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-MTKSQWQE5K');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+          margin-bottom: 0em;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="Using NIMBLE and brms">Introduction to Bayesian Statistics with R</a>:
+        <small class="text-muted">Using NIMBLE and brms</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="active" href="index.html">Introduction</a></li>
+<li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
+<li><a class="" href="conclusions.html">Conclusions</a></li>
+<li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="introduction" class="section level1 unnumbered">
+<h1>Introduction<a class="anchor" aria-label="anchor" href="#introduction"><i class="fas fa-link"></i></a>
+</h1>
+<p>Bayesian statistics can be found almost everywhere in science. For example, in epidemiology to predict the spread of viruses, in ecology to understand the extinction of plant and animal species, or in computer science to filter unwanted emails. The widespread adoption of Bayesian methods over the past decades has largely been driven by advances in computing power. But it is also due to the nature of the approach itself, which closely matches how we learn, reason, and accumulate knowledge.</p>
+<p>In this book, I offer an introduction to Bayesian statistics. You are currently reading the electronic version of the book, which is the English version of a book published by Quae in March 2026.</p>
+<div class="inline-figure"><img src="images/cover.png" width="100%" style="display: block; margin: auto;"></div>
+<p>My goals in writing this book were twofold:<br>
+1) to synthesize the key methodological concepts that are essential to understand, and<br>
+2) to provide practical tools so that you can apply Bayesian statistics yourself.</p>
+<p>Because we learn best by doing, we will use software to practice statistics. That software is <code>R</code>, a free and open-source environment for statistical computing and data science.</p>
+<p>For Bayesian analysis specifically, I present two practical tools:</p>
+<ul>
+<li>
+<code>brms</code>, which provides a simple and familiar syntax similar to classical regression modeling in R;<br>
+</li>
+<li>
+<code>NIMBLE</code>, which requires more programming but offers great flexibility.</li>
+</ul>
+<p>Rather than adopting a formal academic style, I chose to write this book as if we were in the same room - or on a video call - and I were explaining Bayesian statistics to you directly. As a result, I will occasionally (and sometimes often) use informal language and mathematical shortcuts to make the ideas easier to grasp. I hope you will not mind.</p>
+<div id="why-learn-bayesian-statistics" class="section level2 unnumbered">
+<h2>Why learn Bayesian statistics?<a class="anchor" aria-label="anchor" href="#why-learn-bayesian-statistics"><i class="fas fa-link"></i></a>
+</h2>
+<p>Bayesian statistics provides a framework for analyzing data and making decisions under uncertainty, much like predicting the weather or rolling a die: we cannot know exactly what will happen, but we can estimate the probability of different outcomes.</p>
+<p>Why adopt this approach? Several reasons may motivate its use:</p>
+<ul>
+<li>
+<strong>A natural interpretation of probability</strong>: in Bayesian statistics, probability represents a degree of belief in a hypothesis or parameter, aligning well with how we intuitively reason under uncertainty;<br>
+</li>
+<li>
+<strong>Great flexibility</strong>: the Bayesian framework handles incomplete, heterogeneous, or scarce data, as well as complex models (hierarchical, nonlinear, dynamic, etc.);<br>
+</li>
+<li>
+<strong>Integration of prior knowledge</strong>: previous studies or expert knowledge can be incorporated transparently and formally;<br>
+</li>
+<li>
+<strong>Explicit uncertainty quantification</strong>: Bayesian inference provides not only parameter estimates but also direct measures of uncertainty.</li>
+</ul>
+</div>
+<div id="what-you-will-learn-in-this-book" class="section level2 unnumbered">
+<h2>What you will learn in this book<a class="anchor" aria-label="anchor" href="#what-you-will-learn-in-this-book"><i class="fas fa-link"></i></a>
+</h2>
+<p>My goal is to guide you through the learning process of Bayesian statistics. I have gathered the material that I consider essential for understanding and applying the approach. By the end, you should feel comfortable using Bayesian methods with your own data.</p>
+<p>The objectives are to:</p>
+<ul>
+<li>demystify Bayesian statistics and Markov chain Monte Carlo (MCMC) methods;<br>
+</li>
+<li>understand the differences between Bayesian and frequentist approaches;<br>
+</li>
+<li>read and interpret the “methods” sections of scientific articles using Bayesian analysis;<br>
+</li>
+<li>implement Bayesian analyses in <code>R</code>.</li>
+</ul>
+<p>Chapter <a href="#principles"><strong>??</strong></a> introduces the foundations, revisiting key probability concepts and presenting core ideas through a simple example.</p>
+<p>Chapter <a href="mcmc.html#mcmc">2</a> takes you behind the scenes of Bayesian inference, explaining MCMC methods and guiding you through coding your own Bayesian analysis.</p>
+<p>Chapter <a href="#software"><strong>??</strong></a> introduces two powerful tools for Bayesian modeling: <code>NIMBLE</code> and <code>brms</code>.</p>
+<p>Chapter <a href="#prior"><strong>??</strong></a> focuses on prior distributions—how to choose them, incorporate existing knowledge, and avoid common pitfalls.</p>
+<p>Chapter <a href="#lms"><strong>??</strong></a> presents Bayesian linear regression, including model comparison and validation, with examples using both <code>NIMBLE</code> and <code>brms</code>.</p>
+<p>Chapter <a href="#glms"><strong>??</strong></a> extends the discussion to generalized linear models, with and without random effects, illustrated through simulated data.</p>
+<p>Finally, the last chapter summarizes the key take-home messages and offers practical advice for applying Bayesian statistics.</p>
+</div>
+<div id="how-to-read-this-book" class="section level2 unnumbered">
+<h2>How to read this book<a class="anchor" aria-label="anchor" href="#how-to-read-this-book"><i class="fas fa-link"></i></a>
+</h2>
+<p>There is no single “best” way to read this book. Personally, I always find it difficult to absorb all the information in a technical book in one pass. You may read it sequentially or dip into specific sections as needed.</p>
+<p>In each chapter, the <code>R</code> code is provided; I have hosted it at <a href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R" class="uri">https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R</a> and will update it. Practicing helps to better understand and to check that we have indeed understood. If you are reading the electronic version available at <a href="https://oliviergimenez.github.io/introduction-to-bayesian-statistics-with-R" class="uri">https://oliviergimenez.github.io/introduction-to-bayesian-statistics-with-R</a>, you can copy the lines of code and then paste them into <code>R</code> to run them. To save some space and avoid disrupting the reading too much, some code is not shown, in particular the code used to produce the figures, but it is available at <a href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R" class="uri">https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R</a>. There you will find (i) the complete <code>R</code> code and the texts that make up the chapters of this book (the following <code>R Markdown</code> files: <code>index.Rmd</code>, <code>01-principles.Rmd</code>, <code>02-mcmcmethods.Rmd</code>, <code>03-implementation.Rmd</code>, <code>04-priors.Rmd</code>, <code>05-regression.Rmd</code>, <code>06-glms.Rmd</code> and <code>07-conclusions.Rmd</code>) as well as (ii) the <code>R</code> scripts cleaned of the text to allow you to run the code more easily (the compressed file <code>scriptsR.zip</code>).</p>
+</div>
+<div id="further-reading" class="section level2 unnumbered">
+<h2>Further reading<a class="anchor" aria-label="anchor" href="#further-reading"><i class="fas fa-link"></i></a>
+</h2>
+<p>If you would like to go further, I recommend the following books, whose list is of course not exhaustive. These books were a source of inspiration in writing this book. I hesitated to provide more references, and to cite (many) scientific articles, but I will not do so; the books below are more than sufficient.</p>
+<ul>
+<li><p>Bayesian Methods for Ecology <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-mccarthy2007">McCarthy 2007</a>)</span>. A short and truly accessible book to understand how to apply Bayesian statistics in ecology without getting lost in the mathematics. The book website is here <a href="https://bit.ly/4jSlfQL" class="uri">https://bit.ly/4jSlfQL</a>.</p></li>
+<li><p>Applied Statistical Modelling for Ecologists: A Practical Guide to Bayesian and Likelihood Inference Using R, JAGS, NIMBLE, Stan and TMB <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-kery2024">Kéry and Kellner 2010</a>)</span>. A practical manual to learn how to model with the main Bayesian tools in R (JAGS, NIMBLE, Stan or TMB), based on concrete ecological examples and comparisons of results. The companion website with the code is here <a href="https://www.elsevier.com/books-and-journals/book-companion/9780443137150" class="uri">https://www.elsevier.com/books-and-journals/book-companion/9780443137150</a>.</p></li>
+<li><p>Bayes Rules!: An Introduction to Applied Bayesian Modeling <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-bayesrules2024">Johnson, Ott, and Dogucu 2022</a>)</span>. A very pedagogical book to discover the principles and applications of Bayesian statistics in an intuitive and progressive way. The book is available online here <a href="https://www.bayesrulesbook.com/" class="uri">https://www.bayesrulesbook.com/</a>.</p></li>
+<li><p>Doing Bayesian Data Analysis: A Tutorial with R and Bugs <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-kruschke2010">Kruschke 2010</a>)</span>. A thorough and visual tutorial that guides the learning of Bayesian statistics step by step with many practical examples. Everything is available at <a href="https://sites.google.com/site/doingbayesiandataanalysis/" class="uri">https://sites.google.com/site/doingbayesiandataanalysis/</a>.</p></li>
+<li><p>Bayesian Data Analysis <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-gelman2013">A. Gelman et al. 2013</a>)</span>. The reference book for those who wish to acquire a solid theoretical and applied understanding of Bayesian statistics. The book website is here <a href="https://sites.stat.columbia.edu/gelman/book/" class="uri">https://sites.stat.columbia.edu/gelman/book/</a>.</p></li>
+<li><p>Statistical Rethinking: A Bayesian Course with Examples in R and Stan <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-mcelreath2020">McElreath 2020</a>)</span>. A captivating book to learn how to build and interpret Bayesian models by first developing statistical intuition. All the details are here <a href="https://xcelab.net/rm/" class="uri">https://xcelab.net/rm/</a>, and I highly recommend the video course here <a href="https://github.com/rmcelreath/stat_rethinking_2024" class="uri">https://github.com/rmcelreath/stat_rethinking_2024</a>.</p></li>
+</ul>
+</div>
+<div id="how-this-book-was-written" class="section level2 unnumbered">
+<h2>How this book was written<a class="anchor" aria-label="anchor" href="#how-this-book-was-written"><i class="fas fa-link"></i></a>
+</h2>
+<p>This book was written in <code>RStudio</code> (<a href="http://www.rstudio.com/ide/" class="uri">http://www.rstudio.com/ide/</a>) using the <code>bookdown</code> package (<a href="http://bookdown.org/" class="uri">http://bookdown.org/</a>). The website is hosted via GitHub Pages (<a href="https://pages.github.com/" class="uri">https://pages.github.com/</a>).</p>
+<p>I used <code>R</code> version R-4.5.2_2025-10-31 and the following packages:</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">package</th>
+<th align="left">version</th>
+<th align="left">source</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">bookdown</td>
+<td align="left">0.43</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="even">
+<td align="left">brms</td>
+<td align="left">2.22.0</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="odd">
+<td align="left">lme4</td>
+<td align="left">1.1-37</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="even">
+<td align="left">MCMCvis</td>
+<td align="left">0.16.3</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="odd">
+<td align="left">nimble</td>
+<td align="left">1.3.0</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="even">
+<td align="left">posterior</td>
+<td align="left">1.6.1</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="odd">
+<td align="left">tidyverse</td>
+<td align="left">2.0.0</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+<tr class="even">
+<td align="left">visreg</td>
+<td align="left">2.7.0</td>
+<td align="left">CRAN (R 4.5.0)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div id="about-the-author" class="section level2 unnumbered">
+<h2>About the author<a class="anchor" aria-label="anchor" href="#about-the-author"><i class="fas fa-link"></i></a>
+</h2>
+<p>My name is Olivier Gimenez (<a href="https://oliviergimenez.github.io/" class="uri">https://oliviergimenez.github.io/</a>). I am a senior scientist at CNRS. After studying mathematics, I completed a PhD in statistics applied to ecology. I later obtained my habilitation (HDR) in ecology and evolution and returned to university to study sociology.</p>
+<p>I have authored scientific articles (<a href="https://oliviergimenez.github.io/publication/papers/" class="uri">https://oliviergimenez.github.io/publication/papers/</a>) using Bayesian statistics and co-written several books (<a href="https://oliviergimenez.github.io/publication/books/" class="uri">https://oliviergimenez.github.io/publication/books/</a>), some of which also cover Bayesian methods.</p>
+<p>You can find me on BlueSky (<a href="https://bsky.app/profile/oaggimenez.bsky.social">oaggimenez.bsky.social</a>) and LinkedIn (<a href="https://www.linkedin.com/in/olivier-gimenez-545451115/">olivier-gimenez-545451115/</a>), or contact me by email.</p>
+</div>
+<div id="acknowledgements" class="section level2 unnumbered">
+<h2>Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"><i class="fas fa-link"></i></a>
+</h2>
+<p>I thank my employer, the French National Centre for Scientific Research (CNRS). Being a researcher is a meaningful and valuable profession. However, we are witnessing a gradual deterioration of working conditions in academia, with increased competition, precarity, and fewer permanent positions. I am fortunate to work in a supportive environment at the Centre for Functional and Evolutionary Ecology (CEFE), where collaboration and collective spirit remain strong.</p>
+<p>My interest in Bayesian statistics dates back to my postdoctoral years in England and Scotland. I thank Byron Morgan for giving me the freedom to explore this field, Ruth King for our collaborations and my first experience writing a book, and Steve Brooks for the many stimulating discussions.</p>
+<p>I am grateful to the Master’s students I have taught for over ten years - they have unknowingly contributed to shaping this project. I also thank all students and postdoctoral researchers who have shared part of their journey with me.</p>
+<p>Thanks to the people who kindly agreed to read parts of this book.</p>
+<p>Finally, this book is dedicated to Eleni, Gabriel, and Mélina.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="empty"></div>
+<div class="next"><a href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#introduction">Introduction</a></li>
+<li><a class="nav-link" href="#why-learn-bayesian-statistics">Why learn Bayesian statistics?</a></li>
+<li><a class="nav-link" href="#what-you-will-learn-in-this-book">What you will learn in this book</a></li>
+<li><a class="nav-link" href="#how-to-read-this-book">How to read this book</a></li>
+<li><a class="nav-link" href="#further-reading">Further reading</a></li>
+<li><a class="nav-link" href="#how-this-book-was-written">How this book was written</a></li>
+<li><a class="nav-link" href="#about-the-author">About the author</a></li>
+<li><a class="nav-link" href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/blob/master/index.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/edit/master/index.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-22.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>Ce livre a été généré avec le <a class="text-light" href="https://bookdown.org">package R bookdown</a>.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
