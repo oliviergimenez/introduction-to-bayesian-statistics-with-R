@@ -62,8 +62,8 @@
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="Using NIMBLE and brms">Introduction to Bayesian Statistics with R</a>:
-        <small class="text-muted">Using NIMBLE and brms</small>
+        <a href="index.html" title="using NIMBLE and brms">Introduction to Bayesian Statistics with R</a>:
+        <small class="text-muted">using NIMBLE and brms</small>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -76,12 +76,12 @@
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
         <ul class="book-toc list-unstyled">
 <li><a class="" href="index.html">Introduction</a></li>
-<li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="principles.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
 <li><a class="active" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
-<li><a class="" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="" href="software.html"><span class="header-section-number">3</span> Practical implementation</a></li>
 <li><a class="" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
-<li><a class="" href="lms.html"><span class="header-section-number">5</span> La régression</a></li>
-<li><a class="" href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></li>
+<li><a class="" href="lms.html"><span class="header-section-number">5</span> Regression</a></li>
+<li><a class="" href="glms.html"><span class="header-section-number">6</span> Generalized linear models, and generalized linear mixed models</a></li>
 <li><a class="" href="conclusions.html">Conclusions</a></li>
 <li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
 </ul>
@@ -109,7 +109,7 @@
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">19</span> <span class="co"># number of individuals that survived the winter</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">57</span> <span class="co"># number of individuals monitored at the start of winter</span></span></code></pre></div>
-<p>Let us apply Bayes’ theorem more directly than in Chapter <a href="principes.html#principes">1</a>, where we set aside the denominator <span class="math inline">\(\Pr(\text{data})\)</span>. Let us see whether we can handle it. As we saw, this denominator is given by
+<p>Let us apply Bayes’ theorem more directly than in Chapter <a href="principles.html#principles">1</a>, where we set aside the denominator <span class="math inline">\(\Pr(\text{data})\)</span>. Let us see whether we can handle it. As we saw, this denominator is given by
 <span class="math inline">\(\displaystyle \Pr(\text{y}) = \int{\Pr(\text{data} \mid \theta) \Pr(\theta) \, d\theta}\)</span>.
 So we will have to compute this integral. Let us start by writing an <code>R</code> function that computes the product of the (binomial) likelihood and the prior (Beta(1,1)), i.e. the numerator in Bayes’ theorem, <span class="math inline">\(\Pr(\text{data} \mid \theta) \times \Pr(\theta)\)</span>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -141,7 +141,7 @@ So we will have to compute this integral. Let us start by writing an <code>R</co
 Figure 2.1: Numerical approximation of the posterior distribution of winter survival.
 </p>
 </div>
-<p>How good is this numerical approximation? Ideally, we would like to compare the approximation to the true posterior distribution. Conveniently, we obtained it in Chapter <a href="principes.html#principes">1</a>: it is a beta distribution with parameters 20 and 39. In Figure <a href="mcmc.html#fig:posterior-comparaison">2.2</a>, you can see that the two curves overlap perfectly.</p>
+<p>How good is this numerical approximation? Ideally, we would like to compare the approximation to the true posterior distribution. Conveniently, we obtained it in Chapter <a href="principles.html#principles">1</a>: it is a beta distribution with parameters 20 and 39. In Figure <a href="mcmc.html#fig:posterior-comparaison">2.2</a>, you can see that the two curves overlap perfectly.</p>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:posterior-comparaison"></span>
 <img src="02-mcmcmethods_files/figure-html/posterior-comparaison-1.png" alt="Comparison between the exact posterior (brick red) and the numerical approximation (cream)." width="90%"><p class="caption">
@@ -155,7 +155,7 @@ Figure 2.2: Comparison between the exact posterior (brick red) and the numerical
 <p>There are two major numerical challenges:</p>
 <ul>
 <li>Do we really want to compute a triple integral? No, because classical methods rarely go much beyond two dimensions.</li>
-<li>We are often interested in marginal distributions of parameters (for example, that of <span class="math inline">\(\beta_1\)</span>, the effect of mass on survival), obtained by integrating the joint posterior distribution over the other parameters (here, a double integral with respect to <span class="math inline">\(\beta_0\)</span> and $) — which quickly becomes intractable as the number of parameters increases.</li>
+<li>We are often interested in marginal distributions of parameters (for example, that of <span class="math inline">\(\beta_1\)</span>, the effect of mass on survival), obtained by integrating the joint posterior distribution over the other parameters (here, a double integral with respect to <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\sigma\)</span>) — which quickly becomes intractable as the number of parameters increases.</li>
 </ul>
 <p>In the next section, we introduce powerful simulation methods to overcome these limitations.</p>
 </div>
@@ -193,7 +193,7 @@ where <span class="math inline">\(X\)</span> is <span class="math inline">\(\the
 \text{Rainy today}   &amp; 0.9 &amp; 0.1
 \end{array}
 \]</span></p>
-<p>Rows indicate today’s weather and columns indicate tomorrow’s. The cells give the probability of having a sunny or rainy day tomorrow depending on today’s weather (conditional probabilities; see Chapter <a href="principes.html#principes">1</a>).</p>
+<p>Rows indicate today’s weather and columns indicate tomorrow’s. The cells give the probability of having a sunny or rainy day tomorrow depending on today’s weather (conditional probabilities; see Chapter <a href="principles.html#principles">1</a>).</p>
 <p>Under certain conditions, a Markov chain converges to a unique stationary distribution. In our weather example, let us iterate the chain for 20 steps:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">temps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">0.2</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="co"># transition matrix</span></span>
@@ -443,13 +443,13 @@ Figure 2.9: Autocorrelation functions (ACF) for different proposal standard devi
 <li><p>In practice, we run several Markov chains starting from dispersed initial values.</p></li>
 <li><p>We discard the first iterations (warm-up or burn-in phase) and consider that convergence is reached when all chains converge to the same regime.</p></li>
 <li><p>From that point on, we run the chains long enough and then compute Monte Carlo estimates of numerical summaries (for example, posterior means or credible intervals) of the parameters.</p></li>
-<li><p>Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter <a href="logiciels.html#logiciels">3</a> we will see how to make this easier.</p></li>
+<li><p>Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter <a href="software.html#software">3</a> we will see how to make this easier.</p></li>
 </ul>
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></div>
-<div class="next"><a href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></div>
+<div class="prev"><a href="principles.html"><span class="header-section-number">1</span> The Bayesian approach</a></div>
+<div class="next"><a href="software.html"><span class="header-section-number">3</span> Practical implementation</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -482,11 +482,11 @@ Figure 2.9: Autocorrelation functions (ACF) for different proposal standard devi
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-23.</p>
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong> using NIMBLE and brms" was written by Olivier Gimenez. Last updated 2026-02-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
-    <p>Ce livre a été généré avec le <a class="text-light" href="https://bookdown.org">package R bookdown</a>.</p>
+    <p>This book was built with the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
   </div>
 
 </div></div>

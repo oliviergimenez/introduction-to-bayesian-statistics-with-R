@@ -1,71 +1,70 @@
-# La régression {#lms}
+
+# Regression {#lms}
 
 ## Introduction 
 
-Ce chapitre présente l’application de la statistique bayésienne à la régression linéaire. On prendra un exemple qui nous permettra d'aller un peu plus loin que notre exemple fil rouge sur la survie. Ce sera l'occasion d'aborder comment et pourquoi utiliser un modèle pour simuler des données. Nous en profiterons pour illustrer la comparaison et la validation des modèles. Nous utiliserons `NIMBLE` et `brms` et comparerons avec l'approche fréquentiste.
+This chapter presents the application of Bayesian statistics to linear regression. We will use an example that allows us to go a bit further than our running example on survival. This will be an opportunity to discuss how and why to use a model to simulate data. We will also illustrate model comparison and validation. We will use `NIMBLE` and `brms` and compare with the frequentist approach.
 
-## La régression linéaire
+## Linear regression
 
-### Le modèle
+### The model
 
-Pour changer un peu, je vous propose d'utiliser `NIMBLE` et `brms` sur un exemple différent de celui de l'estimation de la survie. Attardons-nous sur la régression linéaire.  
+To change things a bit, I suggest using `NIMBLE` and `brms` on an example different from survival estimation. Let us focus on linear regression.  
 
-Commençons par poser les bases de notre modèle linéaire. On a $n$ mesures d'une variable réponse $y_i$ avec $i$ qui varie de 1 à $n$. Pensez par exemple à la masse (en kilogrammes) de nos ragondins dans l'exemple fil rouge. On associe chaque mesure à une variable explicative $x_i$, par exemple la température extérieure moyenne en hiver (en degrés Celsius) pour nos ragondins. On cherche à étudier l’effet de la température sur la masse. Le plus simple est de supposer une relation linéaire entre les deux, on utilise donc un modèle de régression linéaire. Le modèle comporte une ordonnée à l'origine (ou intercept) $\beta_0$, et une pente $\beta_1$ qui décrit l’effet de $x_i$ sur $y_i$, ou de la température sur la masse des ragondins. On a aussi besoin d'un paramètre pour décrire la variabilité résiduelle représentée par un paramètre de variance $\sigma^2$, qui capte la part de variation dans les $y_i$ non expliquée par les $x_i$. Vous avez probablement déjà rencontré ce modèle sous la forme : $y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$ où les erreurs $\varepsilon_i$ sont supposées indépendantes et distribuées selon une loi normale de moyenne 0 et de variance $\sigma^2$. 
+Let us start by laying out the foundations of our linear model. We have $n$ measurements of a response variable $y_i$ with $i$ ranging from 1 to $n$. Think for example of the mass (in kilograms) of our coypus in the running example. We associate each measurement with an explanatory variable $x_i$, for example the average outdoor temperature in winter (in degrees Celsius) for our coypus. We want to study the effect of temperature on mass. The simplest assumption is a linear relationship between the two, so we use a linear regression model. The model includes an intercept $\beta_0$, and a slope $\beta_1$ that describes the effect of $x_i$ on $y_i$, or of temperature on coypu mass. We also need a parameter to describe residual variability represented by a variance parameter $\sigma^2$, which captures the part of variation in the $y_i$ not explained by the $x_i$. You have probably already encountered this model in the form: $y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$ where the errors $\varepsilon_i$ are assumed independent and normally distributed with mean 0 and variance $\sigma^2$. 
 
-L'intercept $\beta_0$ nous donne la masse quand la température est de 0 degré ($x_i = 0$). Le paramètre $\beta_1$ nous renseigne sur le changement dans la variable réponse pour une augmentation d'une unité (ici 1 degré Celsius) de la variable explicative (d'où le terme "pente" pour désigner ce paramètre). En général, on conseille (fortement) de centrer (soustraire la moyenne) et réduire (diviser par l'écart-type) les valeurs de la variable explicative pour des questions numériques et d'interprétation. Numérique d'abord car cela permet aux algorithmes, qu'ils soient fréquentistes ou bayésiens, de ne pas se perdre dans des recoins de l'espace du paramètre. Interprétation ensuite, car on interprète alors l'intercept $\beta_0$ comme la valeur de la variable réponse pour une valeur moyenne de la variable explicative. 
+The intercept $\beta_0$ gives us the mass when the temperature is 0 degrees ($x_i = 0$). The parameter $\beta_1$ tells us the change in the response variable for a one‑unit increase (here 1 degree Celsius) in the explanatory variable (hence the term “slope” for this parameter). In general, it is (strongly) recommended to center (subtract the mean) and scale (divide by the standard deviation) the values of the explanatory variable for numerical and interpretational reasons. Numerical first, because it allows algorithms, whether frequentist or Bayesian, not to get lost in corners of the parameter space. Interpretation next, because the intercept $\beta_0$ is then interpreted as the value of the response variable for an average value of the explanatory variable. 
 
-Dans cette section, plutôt que d'analyser de "vraies" données, nous allons, à partir des paramètres $\beta_0$, $\beta_1$ et $\sigma$, simuler des données artificielles, comme si elles provenaient d’un vrai processus sous-jacent. 
+In this section, rather than analyzing “real” data, we will, from the parameters $\beta_0$, $\beta_1$ and $\sigma$, simulate artificial data, as if they came from a real underlying process. 
 
-<!-- Cette étape est très utile pour vérifier que notre modèle est capable de retrouver les paramètres utilisés — un bon réflexe à adopter avant d’analyser des données réelles. -->
+### Simulating data
 
-### Simuler des données
+What do I mean by simulating data? Data analysis and data simulation are two sides of the same model. In analysis, we use the data to estimate the parameters of a model. In simulation, we fix the parameters and use the model to generate data. One reason to use simulations is that this exercise forces us to really understand the model; if I cannot simulate data from a model, it means I have not fully understood how it works. There are many other good reasons to use simulations. Since the truth (the parameters and the model) is known, we can check that the model is correctly coded. We can evaluate bias and precision of our parameter estimates, assess the effects of violating model assumptions, plan a data collection protocol, or evaluate the power of a statistical test. In short, it is a very useful technique to have in your toolbox! 
 
-Qu'est-ce que j'entends par simuler des données ? L'analyse et la simulation des données sont deux faces d'un même modèle. Dans l'analyse, on utilise les données pour estimer les paramètres d'un modèle. Dans la simulation, on fixe les paramètres et on utilise le modèle pour générer des données. Une raison d'utiliser les simulations est que cette gymnastique va nous obliger à bien comprendre le modèle ; si je n'arrive pas à simuler des données à partir d'un modèle, c'est que je n'ai pas complètement compris comment il marchait. Il y a des tas d'autres bonnes raisons pour utiliser les simulations. Comme la vérité (les paramètres et le modèle) est connue, on peut vérifier que le modèle est bien codé. On peut évaluer le biais et la précision des estimations de nos paramètres, évaluer les effets de ne pas respecter les hypothèses du modèle, planifier un protocole de récolte de données ou encore évaluer la puissance d'un test statistique. Bref, c'est une technique très utile à avoir dans votre boîte à outils ! 
-
-Revenons à notre exemple. Pour simuler des données selon le modèle de régression linéaire, on commence par fixer nos paramètres : $\beta_0 = 0.1$, $\beta_1 = 1$ et $\sigma^2 = 0.5$ : 
+Let us return to our example. To simulate data according to the linear regression model, we start by fixing our parameters: $\beta_0 = 0.1$, $\beta_1 = 1$ and $\sigma^2 = 0.5$ : 
 
 ``` r
-beta0 <- 0.1 # valeur vraie de l'intercept
-beta1 <- 1 # valeur vraie du coefficient de x
-sigma <- 0.5 # écart-type des erreurs
+beta0 <- 0.1 # true value of the intercept
+beta1 <- 1 # true value of the coefficient of x
+sigma <- 0.5 # standard deviation of the errors
 ```
 
-Puis on simule $n = 100$ valeurs $x_i$ de notre variable explicative selon une loi normale de moyenne 0 et d'écart-type 1, autrement dit $N(0,1)$ :
+Then we simulate $n = 100$ values $x_i$ of our explanatory variable from a normal distribution with mean 0 and standard deviation 1, that is $N(0,1)$ :
 
 ``` r
-set.seed(666) # pour rendre la simulation reproductible
-n <- 100 # nombre d'observations
-x <- rnorm(n = n, mean = 0, sd = 1) # covariable x simulée selon une loi normale standard
+set.seed(666) # to make the simulation reproducible
+n <- 100 # number of observations
+x <- rnorm(n = n, mean = 0, sd = 1) # covariate x simulated from a standard normal distribution
 ```
 
-Enfin, on simule les valeurs de la variable réponse, en ajoutant une erreur normale `epsilon` à la relation linéaire `beta0 + beta1 * x` : 
+Finally, we simulate the values of the response variable by adding a normal error `epsilon` to the linear relationship `beta0 + beta1 * x` : 
 
 ``` r
-epsilon <- rnorm(n, mean = 0, sd = sigma) # génère les erreurs normales
-y <- beta0 + beta1 * x + epsilon # ajoute les erreurs à la relation linéaire
+epsilon <- rnorm(n, mean = 0, sd = sigma) # generate normal errors
+y <- beta0 + beta1 * x + epsilon # add errors to the linear relationship
 data <- data.frame(y = y, x = x)
 ```
 
-La Figure \@ref(fig:donnees-simulees) ci-dessous montre les données simulées, ainsi que la droite de régression correspondant au modèle utilisé pour les générer : 
+Figure \@ref(fig:donnees-simulees) below shows the simulated data, as well as the regression line corresponding to the model used to generate them : 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/donnees-simulees-1.png" alt="Données simulées (n = 100) selon le modèle \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), avec \(\beta_0 = 0.1\), \(\beta_1 = 1\) et \(\sigma = 1\). La droite rouge correspond à la droite de régression." width="90%" />
-<p class="caption">(\#fig:donnees-simulees)Données simulées (n = 100) selon le modèle \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), avec \(\beta_0 = 0.1\), \(\beta_1 = 1\) et \(\sigma = 1\). La droite rouge correspond à la droite de régression.</p>
+<img src="05-regression_files/figure-html/donnees-simulees-1.png" alt="Simulated data (n = 100) according to the model \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), with \(\beta_0 = 0.1\), \(\beta_1 = 1\) and \(\sigma = 1\). The red line corresponds to the regression line." width="90%" />
+<p class="caption">(\#fig:donnees-simulees)Simulated data (n = 100) according to the model \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), with \(\beta_0 = 0.1\), \(\beta_1 = 1\) and \(\sigma = 1\). The red line corresponds to the regression line.</p>
 </div>
 
-### L'ajustement avec `brms`
+### Fitting with `brms`
 
 
 
-Dans cette section, on utilise `brms` pour ajuster le modèle de régression linéaire aux données qu'on vient de générer. Si tout se passe bien, les paramètres estimés devraient être proches des valeurs utilisées pour générer les données. Je vais relativement vite ici puisqu'on a couvert les différentes étapes au Chapitre \@ref(logiciels). La syntaxe est très proche de celle qu'on utiliserait pour ajuster le modèle par maximum de vraisemblance avec la fonction `lm()` dans `R` : 
+In this section, we use `brms` to fit the linear regression model to the data we have just generated. If everything goes well, the estimated parameters should be close to the values used to generate the data. I will go relatively quickly here since we covered the different steps in Chapter \@ref(software). The syntax is very close to what we would use to fit the model by maximum likelihood with the `lm()` function in `R`:
 
 
 ``` r
-lm.brms <- brm(y ~ x, # formule : y en fonction de x
-               data = data, # jeu de données
-               family = gaussian) # distribution normale
+lm.brms <- brm(y ~ x, # formula: y as a function of x
+               data = data, # dataset
+               family = gaussian) # normal distribution
 ```
 
-Jetons un coup d'oeil aux résumés numériques et aux diagnostics de convergence :
+Let's take a look at the numerical summaries and the convergence diagnostics:
 
 ``` r
 summary(lm.brms)
@@ -90,33 +89,33 @@ summary(lm.brms)
 #> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-Par défaut, `brms` a utilisé quatre chaînes qui ont tourné pendant 2000 itérations chacune avec 1000 itérations utilisées comme burn-in, soit au total 4000 itérations pour l'inférence a posteriori. Dans les sorties, `Intercept`, `x` et `sigma` correspondent respectivement aux paramètres $\beta_0$, $\beta_1$ et $\sigma$ du modèle. Le \( \hat{R} \) pour les 3 paramètres vaut 1, et les tailles d'échantillon efficaces sont satisfaisantes. Les intervalles de crédibilité contiennent la vraie valeur du paramètre utilisée pour simuler les données. 
+By default, `brms` used four chains that each ran for 2000 iterations with 1000 iterations used as burn-in, for a total of 4000 iterations for posterior inference. In the output, `Intercept`, `x` and `sigma` correspond respectively to the parameters $\beta_0$, $\beta_1$ and $\sigma$ of the model. The \( \hat{R} \) for the 3 parameters is 1, and the effective sample sizes are satisfactory. The credible intervals contain the true parameter value used to simulate the data.
 
-On vérifie que le mixing est bon (Figure \@ref(fig:fig-posterior-regression)) :
+We check that the mixing is good (Figure \@ref(fig:fig-posterior-regression)):
 
 ``` r
 plot(lm.brms)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-posterior-regression-1.png" alt="Histogrammes des distributions a posteriori (colonne de gauche) et traces (colonne de droite) des paramètres de la régression linéaire. Dans les histogrammes, l’axe des abscisses représente les valeurs possibles du paramètre estimé (intercept, pente ou écart-type) et l’axe des ordonnées correspond à leur fréquence dans l’échantillon a posteriori. Dans les trace plots, l’axe des abscisses indique le numéro d’itération du MCMC, tandis que l’axe des ordonnées représente la valeur simulée du paramètre à chaque itération." width="90%" />
-<p class="caption">(\#fig:fig-posterior-regression)Histogrammes des distributions a posteriori (colonne de gauche) et traces (colonne de droite) des paramètres de la régression linéaire. Dans les histogrammes, l’axe des abscisses représente les valeurs possibles du paramètre estimé (intercept, pente ou écart-type) et l’axe des ordonnées correspond à leur fréquence dans l’échantillon a posteriori. Dans les trace plots, l’axe des abscisses indique le numéro d’itération du MCMC, tandis que l’axe des ordonnées représente la valeur simulée du paramètre à chaque itération.</p>
+<img src="05-regression_files/figure-html/fig-posterior-regression-1.png" alt="Histograms of the posterior distributions (left column) and traces (right column) of the linear regression parameters. In the histograms, the x-axis represents the possible values of the estimated parameter (intercept, slope, or standard deviation) and the y-axis corresponds to their frequency in the posterior sample. In the trace plots, the x-axis indicates the MCMC iteration number, while the y-axis represents the simulated value of the parameter at each iteration." width="90%" />
+<p class="caption">(\#fig:fig-posterior-regression)Histograms of the posterior distributions (left column) and traces (right column) of the linear regression parameters. In the histograms, the x-axis represents the possible values of the estimated parameter (intercept, slope, or standard deviation) and the y-axis corresponds to their frequency in the posterior sample. In the trace plots, the x-axis indicates the MCMC iteration number, while the y-axis represents the simulated value of the parameter at each iteration.</p>
 </div>
 
-### Des priors faiblement informatifs {#weakly-informative-priors}
+### Weakly informative priors {#weakly-informative-priors}
 
-Plutôt que d'utiliser les priors par défaut de `brms`, choisissons d'autres priors. Nous allons utiliser des priors faiblement informatifs, et plus spécifiquement une normale avec moyenne 0 et écart-type 1.5 ou $N(0,1.5)$ pour les paramètres de régression $\beta_0$ et $\beta_1$. On a déjà parlé des priors faiblement informatifs au Chapitre \@ref(prior). L'idée est proche de celle des priors vagues ou non-informatifs, dans le sens où l'on s'efforce de refléter via les priors faiblement informatifs le fait qu'on n'a pas vraiment d'information sur les paramètres du modèle. La différence est que les priors non-informatifs peuvent induire des valeurs aberrantes comme on l'a vu au Chapitre \@ref(prior). C'est encore le cas ici. Prenez par exemple des $N(0,100)$ pour les paramètres de la relation linéaire qui lie la masse des ragondins à la température, et simulez tout un tas de valeurs dans ces priors, puis formez la relation linéaire : 
+Rather than using the default priors in `brms`, let's choose other priors. We will use weakly informative priors, and more specifically a normal with mean 0 and standard deviation 1.5, or $N(0, 1.5)$, for the regression parameters $\beta_0$ and $\beta_1$. We already discussed weakly informative priors in Chapter \@ref(prior). The idea is close to that of vague or non-informative priors, in the sense that we try, through weakly informative priors, to reflect the fact that we do not really have information on the model parameters. The difference is that non-informative priors can induce aberrant values as we saw in Chapter \@ref(prior). This is still the case here. Take for example $N(0, 100)$ for the parameters of the linear relationship that links the mass of coypus to temperature, and simulate a whole bunch of values from these priors, then form the linear relationship:
 
 ``` r
 
-# nombre de droites à simuler
+# number of lines to simulate
 n_lines <- 100
 
-# tirages des intercepts et pentes selon les priors
+# draws of intercepts and slopes from the priors
 intercepts <- rnorm(n_lines, mean = 0, sd = 100)
 slopes <- rnorm(n_lines, mean = 0, sd = 100)
 
-# création d'un data frame
+# create a data frame
 lines_df <- data.frame()
 for (i in 1:n_lines) {
   y_vals <- intercepts[i] + slopes[i] * x
@@ -124,7 +123,7 @@ for (i in 1:n_lines) {
   lines_df <- rbind(lines_df, temp_df)
 }
 
-# tracé avec ggplot2
+# plot with ggplot2
 ggplot(lines_df, aes(x = x, y = y, group = line)) +
   geom_line(alpha = 0.3) +
   theme_minimal() +
@@ -132,50 +131,50 @@ ggplot(lines_df, aes(x = x, y = y, group = line)) +
 ```
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-prior-regression-vague-1.png" alt="Simulation de droites de régression issues des distributions a priori. Chaque ligne correspond à un tirage des paramètres : intercept et pente ~ N(0, 100)." width="90%" />
-<p class="caption">(\#fig:fig-prior-regression-vague)Simulation de droites de régression issues des distributions a priori. Chaque ligne correspond à un tirage des paramètres : intercept et pente ~ N(0, 100).</p>
+<img src="05-regression_files/figure-html/fig-prior-regression-vague-1.png" alt="Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 100)." width="90%" />
+<p class="caption">(\#fig:fig-prior-regression-vague)Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 100).</p>
 </div>
 
-On voit dans la Figure \@ref(fig:fig-prior-regression-vague) qu'on obtient des valeurs aberrantes pour les $y_i$, avec des ragondins de plus de 400 kilogrammes, et des valeurs (très) négatives pour la masse. On vient de faire un "prior predictive check", comme au Chapitre \@ref(prior). Dans la Figure \@ref(fig:fig-prior-regression), on fait la même chose avec notre prior faiblement informatif $N(0,1.5)$ : 
+In Figure \@ref(fig:fig-prior-regression-vague), we see that we obtain aberrant values for the $y_i$, with coypus weighing more than 400 kilograms, and (very) negative values for the mass. We have just done a “prior predictive check”, as in Chapter \@ref(prior). In Figure \@ref(fig:fig-prior-regression), we do the same thing with our weakly informative prior $N(0, 1.5)$:
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-prior-regression-1.png" alt="Simulation de droites de régression issues des distributions a priori. Chaque ligne correspond à un tirage des paramètres : intercept et pente ~ N(0, 1.5)." width="90%" />
-<p class="caption">(\#fig:fig-prior-regression)Simulation de droites de régression issues des distributions a priori. Chaque ligne correspond à un tirage des paramètres : intercept et pente ~ N(0, 1.5).</p>
+<img src="05-regression_files/figure-html/fig-prior-regression-1.png" alt="Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 1.5)." width="90%" />
+<p class="caption">(\#fig:fig-prior-regression)Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 1.5).</p>
 </div>
 
-On obtient des valeurs plus raisonnables pour la masse des ragondins qui dépassent rarement 10 kilogrammes. On a toujours des valeurs négatives, mais moindres, l'algorithme MCMC devrait s'en sortir. Il y a aussi un avantage numérique à utiliser des priors faiblement informatifs, ils aident les méthodes MCMC à ne pas se perdre dans l'espace de toutes les valeurs possibles pour les paramètres à estimer, et leur permettent de se focaliser sur les valeurs réalistes de ces paramètres. En faisant ça, vous avez peut-être l'impression qu'on utilise les données pour construire les priors, alors qu'on a dit que le prior devait refléter l'information disponible avant de voir les données. C'est l'occasion de préciser un peu ce point. L'important est surtout que le prior représente l'information indépendante des données qui sont utilisées dans la vraisemblance. 
+We obtain more reasonable values for the mass of coypus, which rarely exceeds 10 kilograms. We still have negative values, but smaller ones, and the MCMC algorithm should cope. There is also a numerical advantage to using weakly informative priors: they help MCMC methods not to get lost in the space of all possible values for the parameters to be estimated, and allow them to focus on realistic values of these parameters. By doing this, you may have the impression that we are using the data to construct the priors, whereas we said that the prior should reflect the information available before seeing the data. This is an opportunity to clarify this point a bit. The important thing is above all that the prior represents information independent of the data that are used in the likelihood.
 
-On s'est jusqu'ici concentrés sur les paramètres de régression, l’intercept $\beta_0$ et la pente $\beta_1$. Mais qu’en est-il de l'écart-type, $\sigma$ ? Ce paramètre est tout aussi important : il reflète à quel point les observations s’écartent de la tendance moyenne décrite par la droite de régression.
+So far we have focused on the regression parameters, the intercept $\beta_0$ and the slope $\beta_1$. But what about the standard deviation, $\sigma$? This parameter is just as important: it reflects how much the observations deviate from the average trend described by the regression line.
 
-Une option souvent envisagée est de lui attribuer une loi uniforme, par exemple $\sigma \sim U(0, B)$, avec une borne inférieure naturelle (0, puisque $\sigma$ est toujours positive), mais une borne supérieure $B$ difficile à choisir. Quelle valeur maximale donner à un écart-type ? Dans certains cas, une valeur apparemment raisonnable peut se révéler trop large. Par exemple, si l’on modélise des tailles humaines et que l’on fixe $\sigma \sim U(0, 50)$ (en cm), cela revient à supposer que 95% des tailles sont réparties sur une plage de 100 cm autour de la moyenne – ce qui est très improbable.
+One option often considered is to assign it a uniform distribution, for example $\sigma \sim U(0, B)$, with a natural lower bound (0, since $\sigma$ is always positive), but an upper bound $B$ that is difficult to choose. What maximum value should one give to a standard deviation? In some cases, an apparently reasonable value can turn out to be too wide. For example, if we model human heights and set $\sigma \sim U(0, 50)$ (in cm), this amounts to assuming that 95% of heights are spread over a 100 cm range around the mean—which is very unlikely.
 
-Une alternative plus souple et plus réaliste consiste à utiliser une loi exponentielle $\sigma \sim \exp(\lambda)$ où $\lambda > 0$ est un paramètre de taux. Cette loi est définie uniquement pour des valeurs positives, ce qui est cohérent avec la nature de $\sigma$, et elle favorise les petites valeurs d’écart-type tout en laissant la possibilité à $\sigma$ d’être plus grande si les données le justifient.
+A more flexible and more realistic alternative is to use an exponential distribution $\sigma \sim \exp(\lambda)$ where $\lambda > 0$ is a rate parameter. This distribution is defined only for positive values, which is consistent with the nature of $\sigma$, and it favors small values of the standard deviation while leaving the possibility for $\sigma$ to be larger if the data justify it.
 
-Par défaut, on prend souvent $\lambda = 1$. Avec $\lambda = 1$, la moyenne et l’écart-type de cette loi sont tous deux égaux à $1$, ce qui induit une loi a priori modeste mais non restrictive (Figure \@ref(fig:fig-prior-sigma)). 
+By default, one often takes $\lambda = 1$. With $\lambda = 1$, the mean and the standard deviation of this distribution are both equal to $1$, which induces a modest but non-restrictive prior (Figure \@ref(fig:fig-prior-sigma)).
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-prior-sigma-1.png" alt="Comparaison entre deux lois a priori pour l’écart-type \(\sigma\) : une loi uniforme \(\text{U}(0,5)\), qui donne la même densité entre 0 et 5, et une loi exponentielle \(\text{Exp}(1)\), qui favorise les petites valeurs tout en conservant une queue plus lourde." width="90%" />
-<p class="caption">(\#fig:fig-prior-sigma)Comparaison entre deux lois a priori pour l’écart-type \(\sigma\) : une loi uniforme \(\text{U}(0,5)\), qui donne la même densité entre 0 et 5, et une loi exponentielle \(\text{Exp}(1)\), qui favorise les petites valeurs tout en conservant une queue plus lourde.</p>
+<img src="05-regression_files/figure-html/fig-prior-sigma-1.png" alt="Comparison between two prior distributions for the standard deviation \(\sigma\): a uniform distribution \(\text{U}(0,5)\), which gives the same density between 0 and 5, and an exponential distribution \(\text{Exp}(1)\), which favors small values while retaining a heavier tail." width="90%" />
+<p class="caption">(\#fig:fig-prior-sigma)Comparison between two prior distributions for the standard deviation \(\sigma\): a uniform distribution \(\text{U}(0,5)\), which gives the same density between 0 and 5, and an exponential distribution \(\text{Exp}(1)\), which favors small values while retaining a heavier tail.</p>
 </div>
 
-On peut formaliser ce modèle comme suit : 
+We can formalize this model as follows:
 \begin{align}
-y_i &\sim \text{Normale}(\mu_i, \sigma^2) &\text{[vraisemblance]}\\
-\mu_i &= \beta_0 + \beta_1 \; x_i &\text{[relation linéaire]}\\
-\beta_0, \beta_1 &\sim \text{Normale}(0, 1.5) &\text{[prior sur les paramètres]} \\
-\sigma &\sim \text{Exp}(1) &\text{[prior sur les paramètres]} \\
+y_i &\sim \text{Normal}(\mu_i, \sigma^2) &\text{[likelihood]}\\
+\mu_i &= \beta_0 + \beta_1 \; x_i &\text{[linear relationship]}\\
+\beta_0, \beta_1 &\sim \text{Normal}(0, 1.5) &\text{[prior on parameters]} \\
+\sigma &\sim \text{Exp}(1) &\text{[prior on parameters]} \\
 \end{align}
 
-Spécifions ces priors : 
+Let us specify these priors:
 
 ``` r
 myprior <- c(
-  prior(normal(0, 1.5), class = b), # prior sur le coefficient de x
-  prior(normal(0, 1.5), class = Intercept), # prior sur l'intercept
-  prior(exponential(1), class = sigma) # prior sur l'écart-type de l'erreur
+  prior(normal(0, 1.5), class = b), # prior on the coefficient of x
+  prior(normal(0, 1.5), class = Intercept), # prior on the intercept
+  prior(exponential(1), class = sigma) # prior on the standard deviation of the error
 )
 ```
 
-Puis refaisons l'ajustement avec `brms` :
+Then let's refit with `brms`:
 
 
 
@@ -186,7 +185,7 @@ lm.brms <- brm(y ~ x,
                prior = myprior)
 ```
 
-On vérifie que les résumés numériques obtenus sont proches de ceux obtenus avec les priors par défaut, et surtout des valeurs utilisées pour simuler les données : 
+We check that the numerical summaries obtained are close to those obtained with the default priors, and above all close to the values used to simulate the data:
 
 ``` r
 summary(lm.brms)
@@ -211,41 +210,40 @@ summary(lm.brms)
 #> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-Ici, les deux modèles donnent quasiment la même chose, ce qui n’a rien de surprenant car les données sont suffisamment informatives pour qu’elles "prennent le dessus sur" le prior. L’intérêt des priors faiblement informatifs ne se voit pas tant dans ce petit exemple que dans d’autres situations : ils évitent les valeurs aberrantes, stabilisent les calculs MCMC et restent utiles quand on a moins de données ou des modèles plus complexes.
+Here, the two models give almost the same thing, which is not surprising because the data are informative enough for them to “take over from” the prior. The interest of weakly informative priors is not so much seen in this small example as in other situations: they avoid aberrant values, stabilize the MCMC computations, and remain useful when we have fewer data or more complex models.
+
+### Fitting with `NIMBLE`
 
 
-### L'ajustement avec `NIMBLE`
 
-
-
-On commence par écrire le modèle : 
+We start by writing the model: 
 
 ``` r
 model <- nimbleCode({
-  # les priors
-  beta0 ~ dnorm(0, sd = 1.5) # prior normal sur l'intercept
-  beta1 ~ dnorm(0, sd = 1.5) # prior normal sur le coefficient
-  sigma ~ dexp(1) # prior exponentiel sur l'écart-type
-  # la vraisemblance
+  # priors
+  beta0 ~ dnorm(0, sd = 1.5) # normal prior on intercept
+  beta1 ~ dnorm(0, sd = 1.5) # normal prior on coefficient
+  sigma ~ dexp(1) # exponential prior on standard deviation
+  # likelihood
   for(i in 1:n) {
-    y[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # equiv de yi = beta0 + beta1 * xi + epsiloni
+    y[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # equiv of yi = beta0 + beta1 * xi + epsiloni
   }
 })
 ```
 
-Dans ce bloc de code, on commence par spécifier des priors sur les trois paramètres du modèle : un prior normal centré en 0 avec un écart-type de 1.5 pour l’intercept $\beta_0$ et pour la pente $\beta_1$, ainsi qu’un prior exponentiel pour l’écart-type $\sigma$ des erreurs. La partie suivante est une boucle `for(i in 1:n)` qui définit la vraisemblance. On spécifie la vraisemblance observation par observation, `NIMBLE` en déduit automatiquement le produit des vraisemblances sur tous les individus, ce qui correspond à la vraisemblance du jeu de données. Pour chaque observation $i$, on a une distribution normale centrée en `beta0 + beta1 * x[i]`, avec un écart-type `sigma`. On retrouve la relation $y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$ où $\varepsilon_i \sim N(0,\sigma^2)$ qui est strictement équivalente à $y_i \sim N(\beta_0 + \beta_1 x_i,\sigma^2)$.
+In this code block, we start by specifying priors on the three model parameters: a normal prior centered on 0 with standard deviation 1.5 for the intercept $\beta_0$ and for the slope $\beta_1$, as well as an exponential prior for the standard deviation $\sigma$ of the errors. The next part is a `for(i in 1:n)` loop that defines the likelihood. We specify the likelihood observation by observation, and `NIMBLE` automatically deduces the product of likelihoods over all individuals, which corresponds to the likelihood of the dataset. For each observation $i$, we have a normal distribution centered at `beta0 + beta1 * x[i]`, with standard deviation `sigma`. We recover the relationship $y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$ where $\varepsilon_i \sim N(0,\sigma^2)$, which is strictly equivalent to $y_i \sim N(\beta_0 + \beta_1 x_i,\sigma^2)$.
 
-Les étapes suivantes consistent à mettre les données dans une liste, spécifier les valeurs initiales, et préciser les paramètres pour lesquels on souhaite des sorties :  
+The next steps are to put the data into a list, specify initial values, and indicate the parameters for which we want output:  
 
 ``` r
-dat <- list(x = x, y = y, n = n) # données
-inits <- list(list(beta0 = -0.5, beta1 = -0.5, sigma = 0.1), # valeurs initiales chaine 1
-              list(beta0 = 0, beta1 = 0, sigma = 1), # valeurs initiales chaine 2
-              list(beta0 = 0.5, beta1 = 0.5, sigma = 0.5)) # valeurs initiales chaine 3
+dat <- list(x = x, y = y, n = n) # data
+inits <- list(list(beta0 = -0.5, beta1 = -0.5, sigma = 0.1), # inits chain 1
+              list(beta0 = 0, beta1 = 0, sigma = 1), # inits chain 2
+              list(beta0 = 0.5, beta1 = 0.5, sigma = 0.5)) # inits chain 3
 par <- c("beta0", "beta1", "sigma")
 ```
 
-On a alors tous les ingrédients pour lancer `NIMBLE` : 
+We then have all the ingredients to run `NIMBLE`: 
 
 
 ``` r
@@ -262,7 +260,7 @@ lm.nimble <- nimbleMCMC(
 
 
 
-Inspectons les résultats : 
+Let’s inspect the results: 
 
 ``` r
 MCMCsummary(lm.nimble, round = 2)
@@ -272,9 +270,9 @@ MCMCsummary(lm.nimble, round = 2)
 #> sigma 0.57 0.04  0.49 0.56  0.65 1.01   772
 ```
 
-On retrouve des résumés numériques proches de ceux obtenus avec `brms`, et proches des vraies valeurs des paramètres utilisés pour simuler les données. 
+We obtain numerical summaries that are close to those obtained with `brms`, and close to the true parameter values used to simulate the data. 
 
-Concernant la convergence, on peut inspecter les trace plots :
+For convergence, we can inspect the trace plots:
 
 ``` r
 MCMCtrace(object = lm.nimble,
@@ -286,34 +284,34 @@ MCMCtrace(object = lm.nimble,
 
 <img src="05-regression_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
-Tout va bien. Le mélange est correct, les diagnostics de convergence sont au vert. 
+Everything looks good. Mixing is correct, and the convergence diagnostics are in the green. 
 
-### L'ajustement par maximum de vraisemblance
+### Maximum likelihood fitting
 
-Et pour finir, on peut comparer avec l'ajustement par maximum de vraisemblance qu'on obtient simplement avec la commande `lm(y ~ x, data = data)`, tout est dans la Figure \@ref(fig:comparaison-methodes) :
+Finally, we can compare with maximum likelihood fitting, obtained simply with the command `lm(y ~ x, data = data)`. Everything is in Figure \@ref(fig:comparaison-methodes):
 
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/comparaison-methodes-1.png" alt="Comparaison des estimations des paramètres du modèle (intercept ou ordonnée à l'origine et pente) selon les différentes méthodes (brms, lm et NIMBLE). Les points donnent les moyennes a posteriori pour brms et NIMBLE, et l'estimation du maximum de vraisemblance pour lm. On donne également les intervalles de crédibilité (pour brms et NIMBLE) et de confiance (pour lm) à 95%. La ligne en tirets noirs indique la vraie valeur utilisée pour simuler les données." width="90%" />
-<p class="caption">(\#fig:comparaison-methodes)Comparaison des estimations des paramètres du modèle (intercept ou ordonnée à l'origine et pente) selon les différentes méthodes (brms, lm et NIMBLE). Les points donnent les moyennes a posteriori pour brms et NIMBLE, et l'estimation du maximum de vraisemblance pour lm. On donne également les intervalles de crédibilité (pour brms et NIMBLE) et de confiance (pour lm) à 95%. La ligne en tirets noirs indique la vraie valeur utilisée pour simuler les données.</p>
+<img src="05-regression_files/figure-html/comparaison-methodes-1.png" alt="Comparison of parameter estimates (intercept and slope) across methods (brms, lm, and NIMBLE). Points show posterior means for brms and NIMBLE, and the maximum likelihood estimate for lm. We also show 95% credible intervals (brms and NIMBLE) and the 95% confidence interval (lm). The dashed black line indicates the true value used to simulate the data." width="90%" />
+<p class="caption">(\#fig:comparaison-methodes)Comparison of parameter estimates (intercept and slope) across methods (brms, lm, and NIMBLE). Points show posterior means for brms and NIMBLE, and the maximum likelihood estimate for lm. We also show 95% credible intervals (brms and NIMBLE) and the 95% confidence interval (lm). The dashed black line indicates the true value used to simulate the data.</p>
 </div>
 
-Les moyennes a posteriori obtenues avec `NIMBLE` et `brms` sont proches des estimations par maximum de vraisemblance pour l'incercept et la pente, dans une moindre mesure. Les intervalles de crédibilité obtenus avec `NIMBLE` et `brms` et l'intervalle de confiance obtenu par maximum de vraisemblance englobent tous les vraies valeurs des paramètres qui ont servi à simuler les données. Gardez à l'esprit qu'il s'agit d'une seule simulation, il faudrait répéter l'exercice un grand nombre de fois pour évaluer formellement la distance entre les vraies valeurs et les estimations des paramètres (le biais). 
+The posterior means obtained with `NIMBLE` and `brms` are close to the maximum likelihood estimates for the intercept and the slope, to a lesser extent. The credible intervals obtained with `NIMBLE` and `brms` and the confidence interval obtained by maximum likelihood all include the true parameter values used to simulate the data. Keep in mind that this is a single simulation; the exercise would need to be repeated many times to formally assess the distance between the true values and the parameter estimates (bias). 
 
-## L'évaluation des modèles
+## Model evaluation
 
-La qualité de l’ajustement d'un modèle aux données est essentielle pour évaluer la confiance que l’on peut accorder aux estimations des paramètres. Les tests de qualité d’ajustement (ou goodness-of-fit en anglais) sont bien établis en statistique fréquentiste, et beaucoup d’entre eux peuvent aussi être utilisés dans des modèles bayésiens simples. C'est le cas par exemple de l’analyse des résidus. 
+The quality of a model fit to data is essential to assess how much confidence we can place in parameter estimates. Goodness-of-fit tests are well established in frequentist statistics, and many of them can also be used in simple Bayesian models. This is the case, for example, for residual analysis. 
 
-Dans le cas d’une régression linéaire, il y a plusieurs hypothèses sur lesquelles repose le modèle. Ce sont les hypothèses d'indépendance, de normalité, de linéarité et d'homoscédasticité ($\sigma$ ne varie pas avec la variable explicative). On peut en général évaluer les deux premières avec le contexte. Concernant les deux autres, on peut visualiser l'ajustement en superposant la droite de régression estimée au nuage de points observés. Avec le package `brms`, cela donne la Figure \@ref(fig:brms-fit-plot) :
+In the case of linear regression, the model rests on several assumptions. These are the assumptions of independence, normality, linearity, and homoscedasticity ($\sigma$ does not vary with the explanatory variable). In general, we can evaluate the first two with context. For the other two, we can visualize the fit by overlaying the estimated regression line on the observed scatter plot. With the `brms` package, this gives Figure \@ref(fig:brms-fit-plot):
 
 ``` r
-# extrait les valeurs tirées dans les distributions a posteriori des paramètres
+# extract values from posteriors
 post <- as_draws_df(lm.brms)
 
-# crée une grille de x pour tracer l'intervalle de crédibilité
+# create grid of x values
 grille_x <- tibble(x = seq(min(data$x), max(data$x), length.out = 100))
 
-# pour chaque x, simule des valeurs de y à partir des échantillons
+# for each x, simulate y values
 pred <- post %>%
   select(b_Intercept, b_x) %>%
   expand_grid(grille_x) %>%
@@ -326,11 +324,11 @@ pred <- post %>%
     .groups = "drop"
   )
 
-# extrait les moyennes a posteriori des paramètres
+# extract post means
 intercept <- summary(lm.brms)$fixed[1,1]
 slope <- summary(lm.brms)$fixed[2,1]
 
-# tracé
+# dataviz
 ggplot(data, aes(x = x, y = y)) +
   geom_point(alpha = 0.6) +
   geom_ribbon(data = pred, aes(x = x, ymin = lower, ymax = upper), fill = "blue", alpha = 0.2, inherit.aes = FALSE) +
@@ -341,29 +339,24 @@ ggplot(data, aes(x = x, y = y)) +
 ```
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/brms-fit-plot-1.png" alt="Ajustement du modèle linéaire par brms. La droite bleue est la régression estimée, obtenue en fixant l'ordonnée à l'origine et la pente à leur moyenne a posteriori, entourée de son intervalle de crédibilité à 95 %." width="90%" />
-<p class="caption">(\#fig:brms-fit-plot)Ajustement du modèle linéaire par brms. La droite bleue est la régression estimée, obtenue en fixant l'ordonnée à l'origine et la pente à leur moyenne a posteriori, entourée de son intervalle de crédibilité à 95 %.</p>
+<img src="05-regression_files/figure-html/brms-fit-plot-1.png" alt="Linear model fit with brms. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval." width="90%" />
+<p class="caption">(\#fig:brms-fit-plot)Linear model fit with brms. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval.</p>
 </div>
 
-Avec `NIMBLE`, c'est la Figure \@ref(fig:nimble-fit-plot) : 
+With `NIMBLE`, this is Figure \@ref(fig:nimble-fit-plot): 
 
 ``` r
-# données simulées
 x <- data$x
 y <- data$y
 
-# tirages postérieurs
 posterior <- rbind(lm.nimble$chain1, lm.nimble$chain2, lm.nimble$chain3)
 beta0 <- posterior[,'beta0']
 beta1 <- posterior[,'beta1']
 
-# grille d'abscisses
 x_seq <- seq(min(data$x), max(data$x), length.out = 100)
 
-# calcul des prédictions pour chaque x
 pred_matrix <- sapply(x_seq, function(xi) beta0 + beta1 * xi)
 
-# résumé (moyenne et intervalle)
 pred_df <- tibble(
   x = x_seq,
   y_mean = colMeans(pred_matrix),
@@ -371,10 +364,8 @@ pred_df <- tibble(
   y_upper = apply(pred_matrix, 2, quantile, probs = 0.975)
 )
 
-# données et vraie relation
 true_df <- tibble(x = x_seq, y_true = 0.1 + 1 * x_seq)
 
-# tracé
 ggplot() +
   geom_point(data = data, aes(x = x, y = y), alpha = 0.6) +
   geom_ribbon(data = pred_df, aes(x = x, ymin = y_lower, ymax = y_upper), fill = "blue", alpha = 0.2) +
@@ -385,46 +376,46 @@ ggplot() +
 ```
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/nimble-fit-plot-1.png" alt="Ajustement du modèle linéaire par NIMBLE. La droite bleue est la régression estimée, obtenue en fixant l'ordonnée à l'origine et la pente à leur moyenne a posteriori, entourée de son intervalle de crédibilité à 95 %." width="90%" />
-<p class="caption">(\#fig:nimble-fit-plot)Ajustement du modèle linéaire par NIMBLE. La droite bleue est la régression estimée, obtenue en fixant l'ordonnée à l'origine et la pente à leur moyenne a posteriori, entourée de son intervalle de crédibilité à 95 %.</p>
+<img src="05-regression_files/figure-html/nimble-fit-plot-1.png" alt="Linear model fit with NIMBLE. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval." width="90%" />
+<p class="caption">(\#fig:nimble-fit-plot)Linear model fit with NIMBLE. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval.</p>
 </div>
 
-Les méthodes bayésiennes sont souvent utilisées pour des modèles plus complexes que la régression linéaire (comme les modèles mixtes, voir Chapitre \@ref(glms)), pour lesquels il n’existe pas de tests de qualité d’ajustement standards “clé en main”. Dans ces situations, on utilise couramment ce qu’on appelle des posterior predictive checks. L'idée est de simuler de nouveaux jeux de données à partir de la distribution a posteriori des paramètres du modèle, puis de les comparer aux données observées. Plus les données simulées ressemblent aux données réelles, plus cela suggère que le modèle s’ajuste bien. Cette comparaison peut se faire de manière visuelle ou à l’aide d’une Bayesian p-value qui quantifie l’écart entre données simulées et observées.
+Bayesian methods are often used for more complex models than linear regression (such as mixed models; see Chapter \@ref(glms)), for which there are no standard turnkey goodness-of-fit tests. In these situations, we commonly use what are called posterior predictive checks. The idea is to simulate new datasets from the posterior distribution of the model parameters, and then compare them to the observed data. The more the simulated data resemble the real data, the more it suggests that the model fits well. This comparison can be done visually or using a Bayesian p-value that quantifies the discrepancy between simulated and observed data.
 
-Dans `brms`, il suffit de faire : 
+In `brms`, you just do: 
 
 ``` r
 pp_check(lm.brms)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/ppcheck-brms-1.png" alt="Posterior predictive checks réalisés avec brms. La courbe noire correspond aux données observées, les courbes bleues aux données simulées selon le modèle. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée." width="90%" />
-<p class="caption">(\#fig:ppcheck-brms)Posterior predictive checks réalisés avec brms. La courbe noire correspond aux données observées, les courbes bleues aux données simulées selon le modèle. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée.</p>
+<img src="05-regression_files/figure-html/ppcheck-brms-1.png" alt="Posterior predictive checks produced with brms. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density." width="90%" />
+<p class="caption">(\#fig:ppcheck-brms)Posterior predictive checks produced with brms. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density.</p>
 </div>
 
-La fonction `pp_check()` génère des graphiques de posterior predictive checks (Figure \@ref(fig:ppcheck-brms)). Elle compare les données observées à des données simulées à partir du modèle ajusté. Si le modèle est bien ajusté aux données, alors on devrait pouvoir l'utiliser pour générer des données qui ressemblent aux données observées. Par conséquent, si les courbes simulées recouvrent bien les observations, cela indique que le modèle capte correctement la structure des données. Dans le cas contraire, cela peut suggérer un problème de spécification du modèle, par exemple un lien ou une famille de distribution inadaptée (voir Chapitre \@ref(glms)).  
+The `pp_check()` function generates posterior predictive check plots (Figure \@ref(fig:ppcheck-brms)). It compares observed data to data simulated from the fitted model. If the model fits the data well, then we should be able to use it to generate data that resemble the observed data. Therefore, if the simulated curves overlap the observations well, this indicates that the model captures the structure of the data correctly. Otherwise, this may suggest a model misspecification, for example an inappropriate link or distribution family (see Chapter \@ref(glms)).  
 
-Il n'y a pas de fonction dédiée dans `NIMBLE` donc il va falloir simuler des données selon le modèle avec les paramètres estimés. On pourrait le faire à la main comme avec l'espérance de vie, mais le plus simple est d'inclure une ligne supplémentaire dans le code `NIMBLE` : 
+There is no dedicated function in `NIMBLE`, so we will need to simulate data under the model with the estimated parameters. We could do it by hand as with life expectancy, but the simplest approach is to include an additional line in the `NIMBLE` code: 
 
 ``` r
 model <- nimbleCode({
-  beta0 ~ dnorm(0, sd = 1.5) # prior normal sur l'intercept
-  beta1 ~ dnorm(0, sd = 1.5) # prior normal sur le coefficient
-  sigma ~ dexp(1) # prior exponentiel sur l'écart-type
+  beta0 ~ dnorm(0, sd = 1.5) # normal prior on intercept
+  beta1 ~ dnorm(0, sd = 1.5) # normal prior on coefficient
+  sigma ~ dexp(1) # exponential prior on standard deviation
   for(i in 1:n) {
-    y[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # modèle pour les données observées
-    y_sim[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # modèle pour les données simulées
+    y[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # model for observed data
+    y_sim[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # model for simulated data
   }
 })
 ```
 
-C'est la ligne `y_sim[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma)` que j'ai ajoutée pour simuler selon le modèle ajusté. Les données et les valeurs initiales ne changent pas, il nous faut juste ajouter `y_sim` à la liste des paramètres qu'on veut retrouver dans les sorties : 
+This is the line `y_sim[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma)` that I added to simulate under the fitted model. The data and initial values do not change; we just need to add `y_sim` to the list of parameters we want to retrieve in the output: 
 
 ``` r
 par <- c("beta0", "beta1", "sigma", "y_sim")
 ```
 
-Puis on relance `NIMBLE` : 
+Then we rerun `NIMBLE`: 
 
 ``` r
 lm.nimble <- nimbleMCMC(
@@ -444,33 +435,33 @@ lm.nimble <- nimbleMCMC(
 #> |-------------------------------------------------------|
 ```
 
-On fusionne alors les 3 chaînes, puis on sélectionne uniquement les colonnes correspondant à `y_sim` : 
+We then merge the 3 chains, and select only the columns corresponding to `y_sim`: 
 
 ``` r
-# fusion des trois chaînes MCMC obtenues avec NIMBLE
+# merge
 y_sim_mcmc <- rbind(lm.nimble$chain1, lm.nimble$chain2, lm.nimble$chain3)
-# sélection des colonnes correspondant aux simulations de y (les y_sim[i])
+# get columns corresponding to simulated y (y_sim[i])
 y_sim_cols <- grep("^y_sim\\[", colnames(y_sim_mcmc))
-# extraction de la matrice des valeurs simulées pour y
+# extract
 y_sim_matrix <- y_sim_mcmc[, y_sim_cols]
 ```
 
-On fait ensuite 10 tirages, comme par défaut dans `brms`, puis on met les résultats en forme : 
+We then take 10 draws, as `brms` does by default, and format the results: 
 
 ``` r
-# fixe la graine pour reproductibilité
+# set seed for reproducibility
 set.seed(123)
-# sélectionne au hasard 10 tirages parmi les simulations (comme le fait brms par défaut)
+# select at random 10 values
 sim_indices <- sample(1:nrow(y_sim_matrix), 10)
-# mise en forme des simulations 
+# format simulated data
 simulations_df <- data.frame(
-  y_sim = as.vector(t(y_sim_matrix[sim_indices, ])), # valeurs simulées
-  Replicate = rep(1:length(sim_indices), each = n), # identifiant du tirage (1 à 10)
-  Observation = rep(1:n, times = length(sim_indices)) # identifiant de l'observation (1 à n)
+  y_sim = as.vector(t(y_sim_matrix[sim_indices, ])), # sim values
+  Replicate = rep(1:length(sim_indices), each = n), # id draw
+  Observation = rep(1:n, times = length(sim_indices)) # id obs
 )
 ```
 
-Enfin, on obtient le graphe des posterior predictive checks dans la Figure \@ref(fig:ppcheck-nimble) : 
+Finally, we obtain the posterior predictive checks plot in Figure \@ref(fig:ppcheck-nimble): 
 
 ``` r
 ggplot() +
@@ -482,71 +473,63 @@ ggplot() +
 ```
 
 <div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/ppcheck-nimble-1.png" alt="Posterior predictive checks réalisés avec NIMBLE. La courbe noire correspond aux données observées, les courbes bleues aux données simulées selon le modèle. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée." width="90%" />
-<p class="caption">(\#fig:ppcheck-nimble)Posterior predictive checks réalisés avec NIMBLE. La courbe noire correspond aux données observées, les courbes bleues aux données simulées selon le modèle. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée.</p>
+<img src="05-regression_files/figure-html/ppcheck-nimble-1.png" alt="Posterior predictive checks produced with NIMBLE. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density." width="90%" />
+<p class="caption">(\#fig:ppcheck-nimble)Posterior predictive checks produced with NIMBLE. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density.</p>
 </div>
 
-On peut également calculer une Bayesian p-value (ou p-valeur bayésienne) qui représente la proportion de jeux de données simulés sous le modèle pour lesquels la statistique choisie (ici la moyenne) est aussi grande ou plus grande que celle observée. Une valeur proche de 0 ou de 1 peut indiquer un mauvais ajustement du modèle pour cette statistique particulière, tandis qu’une valeur proche de 0.5 suggère un bon ajustement. Cette Bayesian p-value s'obtient comme suit : 
+We can also compute a Bayesian p-value, which represents the proportion of datasets simulated under the model for which the chosen statistic (here the mean) is as large as or larger than the observed one. A value close to 0 or 1 can indicate a poor fit of the model for that particular statistic, whereas a value close to 0.5 suggests a good fit. This Bayesian p-value is obtained as follows: 
 
 ``` r
-# Statistique de test observée : ici la moyenne des y observés
+# Observed test stat
 T_obs <- mean(y)
 
-# Statistique de test sur les données simulées
+# Simulated test stat
 T_sim <- apply(y_sim_matrix, 1, mean)
 
-# Valeur-p bayésienne : proportion des simulations où T_sim est plus extrême que T_obs
+# Bayesian p-value: proportion of simulations where T_sim is more extreme than T_obs
 bayes_pval <- mean(T_sim >= T_obs)
-
-# Affichage du résultat
 bayes_pval
 #> [1] 0.512
 ```
 
-Avec `brms`, on peut aussi obtenir cette Bayesian p-value : 
+With `brms`, we can also obtain this Bayesian p-value: 
 
 ``` r
-# Extraire les simulations de y_rep
+# extract simulations
 y_rep <- posterior_predict(lm.brms)
 
-# Calculer la statistique de test sur les données simulées (moyenne ici)
+# compute test stat on sim data
 T_sim <- rowMeans(y_rep)
 
-# Calculer la statistique observée
+# compute test stat on observed data
 T_obs <- mean(lm.brms$data$y)
 
-# Calculer la Bayesian p-value
+# compute Bayesian p-value
 bayes_pval <- mean(T_sim >= T_obs)
-
-# Afficher le résultat
 bayes_pval
 #> [1] 0.49075
 ```
 
+## Model comparison
 
-## La comparaison de modèles
+As we saw in Chapter \@ref(principles), Bayesian statistics makes it possible to compare several hypotheses with each other, and to assess how plausible a hypothesis is given the data we have collected.
 
-Comme on l'a vu dans le Chapitre \@ref(principes), la statistique bayésienne permet de comparer plusieurs hypothèses entre elles, et de savoir à quel point une hypothèse est plausible à partir des données que nous avons collectées. 
+Before comparing models, it is essential to ask what the goal of the analysis is: is it to better understand a phenomenon (an explanatory approach), or rather to make predictions (a predictive approach)?
 
-<!-- Formellement, cela revient à estimer la probabilité qu’un modèle soit vrai étant donné les données, ce qu’on appelle la probabilité a posteriori du modèle. Une méthode classique pour obtenir ces probabilités repose sur les facteurs de Bayes. Mais ces derniers peuvent être coûteux à calculer, et sont souvent très sensibles aux choix des lois a priori, ce qui limite leur utilisation en pratique. Une autre possibilité consiste à estimer directement les probabilités a posteriori des modèles via un algorithme de type MCMC à sauts réversibles (reversible jump MCMC), relativement simple à mettre en œuvre lorsqu’on souhaite sélectionner un sous-ensemble de covariables explicatives. -->
+One strategy is to build a single model that includes the variables deemed relevant, then fit it, examine it, test it, and improve it progressively. This approach aims less at identifying the best model than at exploring different variants to better understand the system under study.
 
-Il est essentiel, avant de comparer des modèles, de se demander quel est l’objectif de l’analyse : s’agit-il de mieux comprendre un phénomène (approche explicative), ou plutôt de faire des prédictions (approche prédictive) ? 
+To evaluate a model’s predictive ability, one can rely on data already used for fitting (internal prediction) or, more reliably, on new data (external prediction). The latter approach, however, requires splitting the data into a training set and a test set. If that is not possible, it is still possible to estimate predictive performance on the training data themselves using tools such as WAIC or LOO-CV.
 
-Une stratégie consiste à construire un modèle unique incluant les variables jugées pertinentes, puis à l’ajuster, l’examiner, le tester, et l’améliorer progressivement. Cette approche vise moins à identifier le meilleur modèle qu’à explorer différentes variantes pour mieux comprendre le système étudié.
+WAIC (Watanabe–Akaike Information Criterion) and LOO-CV (Leave-One-Out cross-validation) allow models to be compared by estimating their ability to predict new data. They combine the fit to the observed data with a penalization for model complexity. A lower WAIC or LOO-CV value indicates a better model. WAIC is based on a theoretical approximation, whereas LOO-CV relies on cross-validation. LOO-CV is generally more accurate, especially for complex models or limited sample sizes, but it is also more computationally costly. In practice, when models are well specified and the sample is large, WAIC and LOO-CV often give very similar results for a given model.
 
-Pour évaluer la capacité prédictive d’un modèle, on peut s’appuyer sur des données déjà utilisées pour l’ajustement (prédiction interne) ou, de manière plus fiable, sur de nouvelles données (prédiction externe). Cette dernière approche nécessite toutefois de diviser les données en un jeu d’apprentissage et un jeu de test. À défaut, il est possible d’estimer les performances prédictives sur les données d’apprentissage elles-mêmes à l’aide d’outils comme le WAIC ou le LOO-CV. 
-
-Le WAIC (Watanabe-Akaike Information Criterion) et le LOO-CV (Leave-One-Out cross-validation) permettent de comparer des modèles en estimant leur capacité à prédire de nouvelles données. Ils combinent l’ajustement aux données observées avec une pénalisation de la complexité du modèle. Une valeur de WAIC ou de LOO-CV plus faible indique un meilleur modèle. Le WAIC est basé sur une approximation théorique, tandis que le LOO-CV repose sur une validation croisée. Le LOO-CV est généralement plus précis, surtout pour les modèles complexes ou les jeux de données de taille limitée, mais il est aussi plus coûteux en calcul. En pratique, lorsque les modèles sont bien spécifiés et que l’échantillon est grand, WAIC et LOO-CV donnent souvent des résultats très proches pour un même modèle.
-
-Je reviens à l'exemple de la régression linéaire. On aimerait tester l'hypothèse que la variable $x$ explique bien une part importante de la variation dans $y$. Cela revient à comparer les modèles avec et sans cette variable. 
+Let us return to the linear regression example. We would like to test the hypothesis that the variable $x$ does explain an important part of the variation in $y$. This amounts to comparing models with and without this variable.
 
 
 
-
-Dans `brms`, on ajuste ces deux modèles avec des priors faiblement informatifs : 
+In `brms`, we fit these two models using weakly informative priors:
 
 ``` r
-# Modèle avec covariable
+# Model with covariate
 fit1 <- brm(y ~ x, data = data, family = gaussian(),
             prior = c(
               prior(normal(0, 1.5), class = Intercept),
@@ -554,21 +537,21 @@ fit1 <- brm(y ~ x, data = data, family = gaussian(),
               prior(exponential(1), class = sigma)
             ))
 
-# Modèle sans covariable
+# Model without covariate
 fit0 <- brm(y ~ 1, data = data, family = gaussian(),
             prior = c(
               prior(normal(0, 1.5), class = Intercept),
               prior(exponential(1), class = sigma))
 ```
 
-La fonction `waic()` permet d'extraire le WAIC, où le modèle avec la plus petite valeur est préféré. Si le modèle avec $x$ est bien le bon (c'est ce qu'on attend puisque c'est comme ça que les données ont été simulées), on devrait voir qu’il est nettement meilleur que celui sans covariable : 
+The function `waic()` can be used to extract the WAIC; the model with the smallest value is preferred. If the model with $x$ is indeed the correct one (which is what we expect since that is how the data were simulated), we should see that it is clearly better than the one without the covariate:
 
 ``` r
-# Calcul du WAIC pour chaque modèle
+# Compute WAIC
 waic1 <- waic(fit1)
 waic0 <- waic(fit0)
 
-# Comparaison
+# Compare
 waic1$estimates['waic',]
 #>  Estimate        SE 
 #> 172.50456  13.13435
@@ -577,58 +560,58 @@ waic0$estimates['waic',]
 #> 333.97491  17.23233
 ```
 
-Ouf, c'est bien le cas. La fonction `loo()` permet de calculer le LOO-CV (une approximation en fait) : 
+Phew, that is indeed the case. The function `loo()` can be used to compute the LOO-CV (an approximation, in fact):
 
 ``` r
 # Leave-one-out cross-validation
 loo1 <- loo(fit1)
 loo0 <- loo(fit0)
 
-# Comparaison
+# Compare
 loo_compare(loo0, loo1)
 #>      elpd_diff se_diff
 #> fit1   0.0       0.0  
 #> fit0 -80.7       9.1
 ```
 
-Dans cette sortie `R`, `elpd_diff` donne l’écart de LOO-CV entre chaque modèle et celui qui a la plus grande valeur. Ainsi, le meilleur modèle est sur la première ligne avec un elpd_diff égal à zéro ; ici, c’est le modèle avec la covariable. On arrive donc à la même conclusion qu’avec le WAIC. 
+In this `R` output, `elpd_diff` gives the difference in LOO-CV between each model and the one with the largest value. Thus, the best model is on the first line with an elpd_diff equal to zero; here, it is the model with the covariate. We therefore reach the same conclusion as with WAIC.
 
-On peut obtenir les valeurs de WAIC avec `NIMBLE` également. Pour ce faire il suffit d'ajouter `WAIC = TRUE` dans l'appel à la fonction `nimbleMCMC`: 
+We can also obtain WAIC values with `NIMBLE`. To do so, we simply add `WAIC = TRUE` in the call to the function `nimbleMCMC`:
 
 ``` r
-# Code du modèle avec covariable
+# Code of model with covariate
 model_avec <- nimbleCode({
-  # les priors
-  beta0 ~ dnorm(0, sd = 1.5) # prior normal sur l'intercept
-  beta1 ~ dnorm(0, sd = 1.5) # prior normal sur le coefficient
-  sigma ~ dexp(1) # prior exponentiel sur l'écart-type
-  # la vraisemblance
+  # priors
+  beta0 ~ dnorm(0, sd = 1.5)
+  beta1 ~ dnorm(0, sd = 1.5)
+  sigma ~ dexp(1)
+  # likelihood
   for(i in 1:n) {
-    y[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma) # equiv de yi = beta0 + beta1 * xi + epsiloni
+    y[i] ~ dnorm(beta0 + beta1 * x[i], sd = sigma)
   }
 })
 
-# Code du modèle sans covariable
+# Code of model without covariate
 model_sans <- nimbleCode({
-  # les priors
-  beta0 ~ dnorm(0, sd = 1.5) # prior normal sur l'intercept
-  sigma ~ dexp(1) # prior exponentiel sur l'écart-type
-  # la vraisemblance
+  # priors
+  beta0 ~ dnorm(0, sd = 1.5) 
+  sigma ~ dexp(1) 
+  # likelihood
   for(i in 1:n) {
-    y[i] ~ dnorm(beta0, sd = sigma) # equiv de yi = beta0 + beta1 * xi + epsiloni
+    y[i] ~ dnorm(beta0, sd = sigma) 
   }
 })
 
-# Données, valeurs initiales
+# Data, initial values
 dat <- list(x = x, y = y, n = n) # données
-inits_avec <- list(list(beta0 = -0.5, beta1 = -0.5, sigma = 0.1), # valeurs initiales chaine 1
-                   list(beta0 = 0, beta1 = 0, sigma = 1), # valeurs initiales chaine 2
-                   list(beta0 = 0.5, beta1 = 0.5, sigma = 0.5)) # valeurs initiales chaine 3
-inits_sans <- list(list(beta0 = -0.5, sigma = 0.1), # valeurs initiales chaine 1
-                   list(beta0 = 0, sigma = 1), # valeurs initiales chaine 2
-                   list(beta0 = 0.5, sigma = 0.5)) # valeurs initiales chaine 3
+inits_avec <- list(list(beta0 = -0.5, beta1 = -0.5, sigma = 0.1), # inits chain 1
+                   list(beta0 = 0, beta1 = 0, sigma = 1), # inits chain 2
+                   list(beta0 = 0.5, beta1 = 0.5, sigma = 0.5)) # inits chain 3
+inits_sans <- list(list(beta0 = -0.5, sigma = 0.1), # inits chain 1
+                   list(beta0 = 0, sigma = 1), # inits chain 2
+                   list(beta0 = 0.5, sigma = 0.5)) # inits chain 3
 
-# Modèle avec covariable
+# Model with covariate
 lm.avec <- nimbleMCMC(
   code = model_avec,
   data = dat,
@@ -644,7 +627,7 @@ lm.avec <- nimbleMCMC(
 #> |-------------|-------------|-------------|-------------|
 #> |-------------------------------------------------------|
 
-# Modèle sans covariable
+# Model without covariate
 lm.sans <- nimbleMCMC(
   code = model_sans,
   data = dat,
@@ -661,21 +644,21 @@ lm.sans <- nimbleMCMC(
 #> |-------------------------------------------------------|
 #>   [Warning] There are 1 individual pWAIC values that are greater than 0.4. This may indicate that the WAIC estimate is unstable (Vehtari et al., 2017), at least in cases without grouping of data nodes or multivariate data nodes.
 
-# Calcul du WAIC pour chaque modèle
+# Compute WAIC
 lm.avec$WAIC$WAIC
 #> [1] 172.4424
 lm.sans$WAIC$WAIC
 #> [1] 333.3443
 ```
 
-On arrive à la même conclusion qu'avec `brms`. A noter que `NIMBLE` ne fournit pas directement une fonction `loo()` comme `brms`, même si on pourrait estimer le LOO-CV à la main.
+We reach the same conclusion as with `brms`. Note that `NIMBLE` does not directly provide a `loo()` function like `brms`, even though one could estimate LOO-CV “by hand”.
 
-## En résumé
+## In summary
 
-+ La régression linéaire permet de modéliser la relation entre une variable réponse continue et une ou plusieurs variables explicatives, en tenant compte d'une variabilité résiduelle.
++ Linear regression makes it possible to model the relationship between a continuous response variable and one or more explanatory variables, while accounting for residual variability.
 
-+ Simuler des données à partir d’un modèle est un excellent moyen de comprendre son fonctionnement et de tester son code.
++ Simulating data from a model is an excellent way to understand how it works and to test your code.
 
-+ Les lois a priori faiblement informatives (comme $N(0, 1.5)$ pour les coefficients ou $\text{Exp}(1)$ pour $\sigma$) aident à encadrer les valeurs réalistes tout en laissant au modèle la liberté d’apprendre des données.
++ Weakly informative prior distributions (such as $N(0, 1.5)$ for the coefficients or $\text{Exp}(1)$ for $\sigma$) help constrain realistic values while still allowing the model the freedom to learn from the data.
 
-+ La validation et la comparaison des modèles peuvent se faire à l’aide de posterior predictive checks et de critères comme le WAIC. Ces outils permettent d’évaluer la qualité du modèle au regard des données, et d’arbitrer entre plusieurs modèles concurrents.
++ Model validation and comparison can be performed using posterior predictive checks and criteria such as WAIC. These tools make it possible to evaluate model quality with respect to the data and to arbitrate between competing models.

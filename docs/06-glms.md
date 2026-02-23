@@ -1,128 +1,119 @@
-# Modèles linéaires généralisés, et généralisés mixtes {#glms}
+# Generalized linear models, and generalized linear mixed models {#glms}
 
 ## Introduction 
 
-Ce chapitre présente l’application de la statistique bayésienne à des extensions du modèle linéaire vu au chapitre précédent, les modèles linéaires généralisés (GLM) et les modèles linéaires généralisés mixtes (GLMM). On commencera par un GLM qui nous permettra de revisiter notre exemple fil rouge sur la survie des ragondins et les données binaires. Nous utiliserons ensuite un GLMM pour analyser des données de comptage. Nous utiliserons ensuite un GLMM pour analyser des données de comptage. Nous utiliserons `NIMBLE` et `brms` et comparerons avec l'approche fréquentiste.
+This chapter presents the application of Bayesian statistics to extensions of the linear model seen in the previous chapter: generalized linear models (GLMs) and generalized linear mixed models (GLMMs). We will start with a GLM that will allow us to revisit our running example on coypu (ragondin) survival and binary data. We will then use a GLMM to analyze count data. We will then use a GLMM to analyze count data. We will use `NIMBLE` and `brms` and compare with the frequentist approach.
 
-## Modèles linéaires généralisés (GLMs)
+## Generalized linear models (GLMs)
 
-Dans le Chapitre \@ref(lms), on a introduit la régression linéaire $y_i \sim N(\mu_i,\sigma^2)$ avec $\mu_i = \beta_0 + \beta_1 x_i$ où on modélise la moyenne $\mu$ de la variable réponse $y$ en fonction d'une variable explicative $x$. Ce modèle dit linéaire est bien adapté à une variable réponse continue. Mais que se passe-t-il lorsque la variable réponse est discrète ? Revenons à notre exemple sur le ragondin dans lequel on étudie le nombre d'animaux qui survivent. Si l'on applique la régression linéaire sur ces données, on va obtenir un nombre décimal de ragondins, ce qui est un peu embêtant pour un effectif par définition discret. De plus, si l'on introduit une variable explicative $x_i$ comme la masse pour expliquer les variations dans le nombre de ragondins qui survivent, on peut se retrouver avec une probabilité de survie négative, ou plus grande que un. Pourquoi ? Et bien car rien n'oblige le modèle linéaire à ne considérer que des valeurs positives et plus petites que un. 
+In Chapter \@ref(lms), we introduced linear regression \(y_i \sim N(\mu_i,\sigma^2)\) with \(\mu_i = \beta_0 + \beta_1 x_i\), where we model the mean \(\mu\) of the response variable \(y\) as a function of an explanatory variable \(x\). This so-called linear model is well suited to a continuous response variable. But what happens when the response variable is discrete? Let us go back to our coypu example in which we study the number of animals that survive. If we apply linear regression to these data, we will obtain a decimal number of coypu, which is a bit annoying for a count that is, by definition, discrete. Moreover, if we introduce an explanatory variable \(x_i\) such as body mass to explain variation in the number of coypu that survive, we may end up with a negative survival probability, or one greater than one. Why? Because nothing forces the linear model to consider only values that are positive and less than one.
 
-On a vu au Chapitre \@ref(principes) la solution. On note $z_i = 1$ quand le ragondin $i$ a survécu, et $z_i = 0$ sinon, et on suppose que l'événement de survie est comme une expérience de pile ou face avec une probabilité $\theta$, autrement dit chaque $z_i$ suit une Bernoulli de paramètre $\theta$. Si l'on suppose que les individus sont indépendants et on la même distribution, alors le nombre total de ragondins qui survivent à l'hiver $\displaystyle\sum_{i=1}^n{z_i} = y$ suit une binomiale $y \sim \text{Bin}(n, \theta)$ avec $\theta$ la probabilité de survie.
+We saw the solution in Chapter \@ref(principles). We set \(z_i = 1\) when coypu \(i\) survived, and \(z_i = 0\) otherwise, and we assume that the survival event is like a coin flip with probability \(\theta\); in other words, each \(z_i\) follows a Bernoulli distribution with parameter \(\theta\). If we assume that individuals are independent and share the same distribution, then the total number of coypu that survive the winter \(\displaystyle\sum_{i=1}^n{z_i} = y\) follows a binomial distribution \(y \sim \text{Bin}(n, \theta)\), with \(\theta\) the survival probability.
 
-On a aussi vu aux Chapitres \@ref(mcmc) et \@ref(logiciels) qu'on pouvait utiliser la fonction logit pour forcer un paramètre à être bien estimé entre 0 et 1. Il s'agit d'écrire que $\text{logit}(\theta_i) = \beta_0 + \beta_1 x_i$, comme expliqué dans la Figure \@ref(fig:logit-link).
+We also saw in Chapters \@ref(mcmc) and \@ref(software) that we can use the logit function to force a parameter to be properly estimated between 0 and 1. This amounts to writing \(\text{logit}(\theta_i) = \beta_0 + \beta_1 x_i\), as explained in Figure \@ref(fig:logit-link).
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/logit-link-1.png" alt="À gauche : la fonction logit transforme une probabilité p en une valeur continue non bornée logit(p) qui vit entre moins l'infini et plus l'infini. À droite : la fonction logit inverse transforme une combinaison linéaire de prédicteurs (valeur linéaire sur la figure) en probabilité qui vit entre 0 et 1. La fonction logit est utilisée dans la régression logistique (GLM avec distribution binomiale) pour transformer une probabilité (entre 0 et 1) en une variable continue définie sur l'ensemble des réels. Puis, la fonction logit inverse permet ensuite de revenir à l’échelle des probabilités." width="90%" />
-<p class="caption">(\#fig:logit-link)À gauche : la fonction logit transforme une probabilité p en une valeur continue non bornée logit(p) qui vit entre moins l'infini et plus l'infini. À droite : la fonction logit inverse transforme une combinaison linéaire de prédicteurs (valeur linéaire sur la figure) en probabilité qui vit entre 0 et 1. La fonction logit est utilisée dans la régression logistique (GLM avec distribution binomiale) pour transformer une probabilité (entre 0 et 1) en une variable continue définie sur l'ensemble des réels. Puis, la fonction logit inverse permet ensuite de revenir à l’échelle des probabilités.</p>
+<img src="06-glms_files/figure-html/logit-link-1.png" alt="Left: the logit function transforms a probability p into an unbounded continuous value logit(p) that lives between minus infinity and plus infinity. Right: the inverse logit function transforms a linear combination of predictors (linear value on the figure) into a probability that lives between 0 and 1. The logit function is used in logistic regression (a GLM with binomial distribution) to transform a probability (between 0 and 1) into a continuous variable defined on the real line. Then, the inverse logit function allows you to return to the probability scale." width="90%" />
+<p class="caption">(\#fig:logit-link)Left: the logit function transforms a probability p into an unbounded continuous value logit(p) that lives between minus infinity and plus infinity. Right: the inverse logit function transforms a linear combination of predictors (linear value on the figure) into a probability that lives between 0 and 1. The logit function is used in logistic regression (a GLM with binomial distribution) to transform a probability (between 0 and 1) into a continuous variable defined on the real line. Then, the inverse logit function allows you to return to the probability scale.</p>
 </div>
 
 
-Pour formaliser un peu, on a : 
+To formalize things a bit, we have:
 \begin{align}
-z_i &\sim \text{Bernoulli}(\theta_i) &\text{[vraisemblance]}\\
-\text{logit}(\theta_i) &= \beta_0 + \beta_1 \; x_i &\text{[relation linéaire]}\\
-\theta_i &= \text{logit}^{-1}(\beta_0 + \beta_1 \; x_i) = \dfrac {e^{\beta_0 + \beta_1 \; x_i}} {1+e^{\beta_0 + \beta_1 \; x_i}} &\text{[relation transformée]}\\
-  \beta_0, \beta_1 &\sim \text{Normale}(0, 1.5) &\text{[prior sur les paramètres]} \\
+z_i &\sim \text{Bernoulli}(\theta_i) &\text{[likelihood]}\\
+\text{logit}(\theta_i) &= \beta_0 + \beta_1 \; x_i &\text{[linear relationship]}\\
+\theta_i &= \text{logit}^{-1}(\beta_0 + \beta_1 \; x_i) = \dfrac {e^{\beta_0 + \beta_1 \; x_i}} {1+e^{\beta_0 + \beta_1 \; x_i}} &\text{[transformed relationship]}\\
+  \beta_0, \beta_1 &\sim \text{Normal}(0, 1.5) &\text{[prior on the parameters]} \\
 \end{align}
 
-<!-- C'est équivalent à :  -->
-<!-- \begin{align}  -->
-<!-- \text{Réponse } &\sim \text{Distribution(Moyenne de la réponse)} \\ -->
-<!-- y &\sim \text{Binomiale}(n, \theta_i) \\ -->
-<!-- \text{logit}(\theta_i) &= a + b \; x_i\\ -->
-<!-- \theta_i &= \text{logit}^{-1}(a + b \; x_i) = \dfrac {e^{a+b \; x_i}} {1+e^{a+b \; x_i}} \\ -->
-<!-- \end{align} -->
-
-Pour illustrer tout ça, on peut reprendre les données ragondins auxquelles on ajoute des données de masse des individus, et pour ce faire, on recrée les données brutes, c'est-à-dire les $z_i$ :
+To illustrate all this, we can go back to the coypu data and add individual body mass data; to do so, we recreate the raw data, i.e. the \(z_i\):
 
 ``` r
-# Nombre total de ragondins suivis, survivants
+# Total number of coypus released, and surviving
 n <- 57
 y <- 19
 
-# Créer les données individuelles (0 = mort, 1 = vivant)
+# Create individual data (0 = dead, 1 = alive)
 z <- c(rep(1, y), rep(0, n - y))
 
-# Ajouter une covariable continue (ex : masse)
+# Add a continuous covariate (ex: mass)
 set.seed(123)
-masse <- rnorm(n, mean = 5, sd = 1)  # masse simulée en kg
+mass <- rnorm(n, mean = 5, sd = 1)  # mass in kg
 
-df_bern <- data.frame(survie = z, masse = masse)
+df_bern <- data.frame(survival = z, mass = mass)
 ```
 
 
-On peut maintenant ajuster les deux modèles avec `brms` par exemple (on obtiendrait la même chose avec `NIMBLE`), la régression linéaire et la régression logistique : 
+We can now fit the two models with `brms`, for example (we would get the same thing with `NIMBLE`): linear regression and logistic regression:
 
 
 ``` r
-# Ajustement de la régression linéaire
-fit_lm <- brm(survie ~ masse, 
+# Fit linear regression
+fit_lm <- brm(survival ~ mass, 
               data = df_bern, 
               family = gaussian())
 
-# Ajustement de la régression logistique
-fit_logit <- brm(survie ~ masse, 
+# Fit logistic regression
+fit_logit <- brm(survival ~ mass, 
                  data = df_bern, 
                  family = bernoulli())
 ```
 
-Au passage, l'interprétation des coefficients de la régression logistique n'est pas facile. On introduit souvent la notion de rapport des chances pour y aider, mais personnellement, ça ne me parle pas plus que ça. Je reviens toujours à une représentation graphique de la relation entre la probabilité de succès (la survie ici) et les variables explicatives (la masse ici), comme dans la Figure \@ref(fig:logit-vs-gaussian). On observe ici une tendance positive, mais elle est due uniquement au hasard de la simulation (puisque les données ont été générées sans effet de la masse). Une autre façon intuitive de s'en sortir est d'utiliser la règle du 4 proposée par Andrew Gelman et ses collègues. L'astuce consiste à diviser la pente de la régression logistique par 4. Cela donne une estimation approximative du changement de probabilité attendu pour une variation d'une unité de la variable explicative, au point où la courbe est la plus pentue. Si la pente est estimée à 0.23 par exemple, alors la pente maximale de la courbe logistique (autour du point d’inflexion, là où elle change de forme) est approximativement de 0.23/4 = 0.06. Cela signifie qu'une augmentation d’une unité de la variable explicative (ici, la masse du ragondin augmente de 1kg) augmente la probabilité de survie d'environ 6% au point où la pente est la plus forte (on passe d'une probabilité de survie de 0.5 à 0.53), comme illustré dans la Figure \@ref(fig:gelman-rule) :
+By the way, interpreting the coefficients of logistic regression is not easy. People often introduce the notion of odds ratios to help, but personally it does not speak to me any more than that. I always come back to a graphical representation of the relationship between the probability of success (survival here) and the explanatory variables (body mass here), as in Figure \@ref(fig:logit-vs-gaussian). We observe a positive trend here, but it is due only to the randomness of the simulation (since the data were generated without any effect of body mass). Another intuitive way to deal with this is to use the rule of 4 proposed by Andrew Gelman and colleagues. The trick is to divide the slope of the logistic regression by 4. This gives an approximate estimate of the expected change in probability for a one-unit change in the explanatory variable, at the point where the curve is steepest. If the slope is estimated at 0.23, for example, then the maximum slope of the logistic curve (around the inflection point, where it changes shape) is approximately \(0.23/4 = 0.06\). This means that an increase of one unit in the explanatory variable (here, the coypu’s body mass increases by 1 kg) increases the survival probability by about 6% at the point where the slope is strongest (we go from a survival probability of 0.5 to 0.53), as illustrated in Figure \@ref(fig:gelman-rule):
 
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/gelman-rule-1.png" alt="Illustration de la règle du 4 de Gelman. Ici, on approxime l’effet de la masse du ragondin sur la probabilité de survie (la courbe logistique en noir) autour du point d’inflexion par une droite dont la pente est donnée par le coefficient estimé divisé par 4 (la droite en tirets rouge)." width="90%" />
-<p class="caption">(\#fig:gelman-rule)Illustration de la règle du 4 de Gelman. Ici, on approxime l’effet de la masse du ragondin sur la probabilité de survie (la courbe logistique en noir) autour du point d’inflexion par une droite dont la pente est donnée par le coefficient estimé divisé par 4 (la droite en tirets rouge).</p>
+<img src="06-glms_files/figure-html/gelman-rule-1.png" alt="Illustration of Gelman’s rule of 4. Here, we approximate the effect of coypu body mass on survival probability (the black logistic curve) around the inflection point by a straight line whose slope is given by the estimated coefficient divided by 4 (the red dashed line)." width="90%" />
+<p class="caption">(\#fig:gelman-rule)Illustration of Gelman’s rule of 4. Here, we approximate the effect of coypu body mass on survival probability (the black logistic curve) around the inflection point by a straight line whose slope is given by the estimated coefficient divided by 4 (the red dashed line).</p>
 </div>
 
-Mais je m'égare, revenons au problème de la régression linéaire appliquée à des données binaires. Comme on peut le voir dans la Figure \@ref(fig:logit-vs-gaussian), la régression linéaire consiste à faire passer une droite sans borne dans les données binaires, ce qui peut conduire à des survies plus grandes que 1 (et/ou plus petites que 0 même si ça n'est pas le cas ici). La régression logistique, en revanche, contraint naturellement les prédictions entre 0 et 1 grâce à la transformation logit, ce qui en fait un choix adapté aux variables de type succès/échec. Au passage, j'ai utilisé la formulation Bernoulli pour introduire une variable explicative mesurée à l'échelle de l'individu, mais si ça n'est pas nécessaire, on peut repasser à la formulation groupée avec la binomiale comme dans les chapitres précédents.
+But I am digressing—let’s return to the problem of applying linear regression to binary data. As you can see in Figure \@ref(fig:logit-vs-gaussian), linear regression amounts to fitting an unbounded straight line to binary data, which can lead to survival probabilities greater than 1 (and/or smaller than 0, even if that is not the case here). Logistic regression, by contrast, naturally constrains predictions between 0 and 1 thanks to the logit transformation, making it a suitable choice for success/failure variables. By the way, I used the Bernoulli formulation to introduce an explanatory variable measured at the individual scale, but if that is not necessary, we can go back to the grouped formulation with the binomial distribution as in the previous chapters.
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/logit-vs-gaussian-1.png" alt="Comparaison entre une régression linéaire et une régression logistique ajustées sur des données binaires. La régression linéaire (en bleu) produit des prédictions plus grandes que 1 (embêtant pour une probabilité de survie), tandis que la régression logistique (en rouge) garantit une estimation de probabilité valide." width="90%" />
-<p class="caption">(\#fig:logit-vs-gaussian)Comparaison entre une régression linéaire et une régression logistique ajustées sur des données binaires. La régression linéaire (en bleu) produit des prédictions plus grandes que 1 (embêtant pour une probabilité de survie), tandis que la régression logistique (en rouge) garantit une estimation de probabilité valide.</p>
+<img src="06-glms_files/figure-html/logit-vs-gaussian-1.png" alt="Comparison between a linear regression and a logistic regression fitted to binary data. Linear regression (in blue) produces predictions greater than 1 (a problem for a survival probability), whereas logistic regression (in red) guarantees a valid probability estimate." width="90%" />
+<p class="caption">(\#fig:logit-vs-gaussian)Comparison between a linear regression and a logistic regression fitted to binary data. Linear regression (in blue) produces predictions greater than 1 (a problem for a survival probability), whereas logistic regression (in red) guarantees a valid probability estimate.</p>
 </div>
 
-
-## Modèles linéaires généralisés mixtes (GLMMs)
+## Generalized linear mixed models (GLMMs)
 
 ### Introduction
 
-Souvent, les données sont récoltées ou mesurées avec une certaine structure, elles sont hiérarchisées ou groupées, par exemple la relation entre la survie de ragondins et leur masse dans différentes populations de différents bassins-versants. Il est alors pertinent de modéliser cette structure dans les données. Cela permet de mieux expliquer la variabilité dans la survie moyenne qui n'est pas expliquée par la masse, et donc d'obtenir de meilleures estimations. Pour ce faire, on introduit les modèles linéaires généralisés mixtes (GLMM) qui combinent des effets fixes comme dans les GLM, représentant l’effet moyen d’une variable explicative (la masse dans l'exemple des ragondins), et des effets aléatoires représentant la variabilité entre groupes ou niveaux hiérarchiques. 
+Often, data are collected or measured with some structure: they are hierarchical or grouped—for instance, the relationship between coypu survival and their body mass across different populations from different watersheds. In such cases, it is relevant to model this structure in the data. Doing so helps explain variability in mean survival that is not explained by body mass, and thus yields better estimates. To achieve this, we introduce generalized linear mixed models (GLMMs), which combine fixed effects as in GLMs—representing the average effect of an explanatory variable (body mass in the coypu example)—and random effects representing variability among groups or hierarchical levels.
 
-Qu'est-ce qu'un effet aléatoire ? Un effet est aléatoire lorsqu'il représente une sélection aléatoire d’unités dans une population plus vaste, par exemple des sites d’échantillonnage ou des individus ; si l'on devait refaire l'expérience, peu importe les sites ou les individus, l'important est de pouvoir généraliser l'interprétation des effets. En ce sens, le sexe des ragondins par exemple ne peut pas être considéré comme un effet aléatoire ; si on refait l'expérience, la variable sexe a toujours les deux mêmes modalités mâle et femelle. Au contraire, considérer les sites d'une aire d'étude de nos ragondins comme un effet fixe permet seulement de dire des choses sur ces sites précis, sans possibilité de généraliser à la « population » de sites, ou à l'aire d'étude. 
+What is a random effect? An effect is random when it represents a random selection of units from a larger population—for example, sampling sites or individuals; if we were to repeat the experiment, the particular sites or individuals would not matter, and what matters is the ability to generalize the interpretation of effects. In this sense, the sex of coypu, for example, cannot be considered a random effect; if we repeat the experiment, the sex variable still has the same two levels, male and female. By contrast, treating the sites within a study area for our coypu as a fixed effect only allows us to say things about these specific sites, without being able to generalize to the “population” of sites, or to the study area.
 
-Au passage, vous verrez les termes modèles hiérarchiques, multi-niveaux ou à effets aléatoires utilisés pour désigner un GLMM dans la littérature scientifique. Parfois il s'agit de la même chose, parfois il s'agit de GLMM un peu modifiés. Pour éviter les confusions, souvenez-vous que les GLMM sont utilisés pour analyser des données qui viennent avec une structure en groupes.  
+Along the way, you will see the terms *hierarchical models*, *multilevel models*, or *random-effects models* used to refer to a GLMM in the scientific literature. Sometimes this is exactly the same thing; sometimes it refers to GLMMs that are slightly modified. To avoid confusion, remember that GLMMs are used to analyze data that come with a grouped structure.
 
-### Exemple
+### Example
 
-Pour illustrer concrètement un GLMM, imaginez la situation où l'on cherche à estimer l'abondance de ragondins dans le bassin-versant du Lez, à Montpellier, où le Lez est un fleuve qui traverse la ville. On répartit dix transects sur la zone d'étude. Sur chaque transect, on compte le nombre de ragondins présents à dix points espacés régulièrement. On s'intéresse à la réponse du nombre de ragondins (comptages) en fonction de la température. Les mesures sont bien hiérarchisées, on fait 1 mesure du nombre de ragondins sur chacun des 10 points que contient chacun des 10 transects. Le protocole est illustré dans la Figure \@ref(fig:protocole) et s'inspire du livre de mon collègue Jason Matthiopoulos [@matthiopoulosHowBeQuantitative2011].
+To illustrate a GLMM concretely, imagine the situation where we want to estimate coypu abundance in the Lez watershed, in Montpellier, where the Lez is a river that runs through the city. We lay out ten transects across the study area. On each transect, we count the number of coypu present at ten regularly spaced points. We are interested in how the number of coypu (counts) responds to temperature. The measurements are clearly hierarchical: we take one count at each of the 10 points within each of the 10 transects. The protocol is illustrated in Figure \@ref(fig:protocole) and is inspired by the book of my colleague Jason Matthiopoulos [@matthiopoulosHowBeQuantitative2011].
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/protocole-1.png" alt="Schéma des données sur les ragondins selon un protocole d’échantillonnage avec 10 points dans 10 transects. L'aire d'étude est en noir. En haut on a le nombre de ragondins, et en bas la température." width="90%" />
-<p class="caption">(\#fig:protocole)Schéma des données sur les ragondins selon un protocole d’échantillonnage avec 10 points dans 10 transects. L'aire d'étude est en noir. En haut on a le nombre de ragondins, et en bas la température.</p>
+<img src="06-glms_files/figure-html/protocole-1.png" alt="Diagram of the coypu data under a sampling protocol with 10 points in 10 transects. The study area is in black. The top panel shows the number of coypu, and the bottom panel shows temperature." width="90%" />
+<p class="caption">(\#fig:protocole)Diagram of the coypu data under a sampling protocol with 10 points in 10 transects. The study area is in black. The top panel shows the number of coypu, and the bottom panel shows temperature.</p>
 </div>
 
+Starting from this protocol, let us simulate data with the following script. We will make it a bit more challenging by assuming that, among our ten transects, we had sampling issues on three of them, for which we could only sample two or three points:
 
-A partir de ce protocole, simulons des données avec le script suivant. On va corser le tout en supposant que sur nos dix transects, on a eu des soucis d'échantillonnage sur trois d'entre eux pour lesquels on n'a pu faire que deux ou trois points : 
 
 ``` r
-set.seed(123) # pour la reproductibilité
-transects <- 10 # nombre total de transects
-nb_points <- c(10, 10, 10, 3, 2, 10, 10, 3, 10, 10) # nombre de points par transect
-data <- NULL # objet qui stockera les données simulées
+set.seed(123) # for reproducibility
+transects <- 10 # total number of transects
+nb_points <- c(10, 10, 10, 3, 2, 10, 10, 3, 10, 10) # number of points per transect
+data <- NULL # object that will store the simulated data
 for (tr in 1:transects){
-  ref <- rnorm(1, 0, .3) # effet aléatoire du transect (N(0,0.3²))
-  # température simulée le long du transect :
-  # point de départ aléatoire entre 18 et 22 °C puis légère pente par segment
+  ref <- rnorm(1, 0, .3) # transect random effect (N(0, 0.3^2))
+  # temperature simulated along the transect:
+  # random starting point between 18 and 22 °C, then a slight slope per segment
   t <- runif(1, 18, 22) + runif(1, -0.2, 0.2) * 1:10
-  # intensité attendue (échelle log) : relation linéaire avec la température
+  # expected intensity (log scale): linear relationship with temperature
   ans <- exp(ref + 0.2 * t)
-  # comptage Poisson de ragondins pour chaque point
+  # Poisson counts of coypu at each point
   an <- rpois(nb_points[tr], ans)
-  # empile les 10 points du transect courant
+  # stack the points from the current transect
   data <- rbind(data, cbind(rep(tr, nb_points[tr]), t[1:nb_points[tr]], an))
 }
-# on met tout dans un data.frame
+# put everything into a data.frame
 sim_simple <- data.frame(
   Transect    = data[, 1],
   Temperature = data[, 2],
@@ -138,42 +129,46 @@ head(sim_simple)
 #> 6        1    20.55515        42
 ```
 
-J'ai commenté le code, ce qui devrait en faciliter la lecture. Malgré tout, quelques explications sur les différentes étapes s'imposent. On commence par une boucle `for (tr in 1:transects)` qui simule les données pour chacun des dix transects, un par un. À chaque fois, on tire un effet aléatoire spécifique (`ref`), qui va faire varier un peu l’intercept de la relation entre température et nombre de ragondins selon le transect. Ensuite, on génère une séquence de températures (`t`) avec un point de départ tiré au hasard, et une petite pente qui change légèrement la température d'un point à l’autre. À partir de cette température, on calcule l’intensité attendue du processus de comptage (`ans`) en supposant une relation linéaire (sur l'échelle log), puis on génère les données observées (`an`) en tirant des valeurs dans une loi de Poisson de moyenne `ans`. Enfin, on regroupe tout dans un tableau (`sim_simple`) pour pouvoir ensuite analyser tout ça. Voici la Figure \@ref(fig:plotsimple) qui illustre les données qu'on obtient : 
+I have commented the code, which should make it easier to read. Nevertheless, a few explanations of the different steps are in order. We begin with a loop `for (tr in 1:transects)` that simulates the data for each of the ten transects, one by one. Each time, we draw a transect-specific random effect (`ref`), which slightly shifts the intercept of the relationship between temperature and the number of coypu depending on the transect. Next, we generate a temperature sequence (`t`) with a randomly drawn starting point and a small slope that changes temperature slightly from one point to the next. From this temperature, we compute the expected intensity of the counting process (`ans`) by assuming a linear relationship (on the log scale), and then we generate the observed data (`an`) by drawing values from a Poisson distribution with mean `ans`. Finally, we gather everything into a table (`sim_simple`) so we can analyze it. Figure \@ref(fig:plotsimple) illustrates the data we obtain:
+
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/plotsimple-1.png" alt="Relation entre le nombre de ragondins et la température par transect, avec plusieurs points de comptage (10 pour tous, sauf les transects 4, 5 et 8 pour lesquels on a 3, 2 et 3 points) par transect." width="90%" />
-<p class="caption">(\#fig:plotsimple)Relation entre le nombre de ragondins et la température par transect, avec plusieurs points de comptage (10 pour tous, sauf les transects 4, 5 et 8 pour lesquels on a 3, 2 et 3 points) par transect.</p>
+<img src="06-glms_files/figure-html/plotsimple-1.png" alt="Relationship between the number of coypu and temperature by transect, with multiple count points (10 for all transects, except transects 4, 5, and 8 for which we have 3, 2, and 3 points) per transect." width="90%" />
+<p class="caption">(\#fig:plotsimple)Relationship between the number of coypu and temperature by transect, with multiple count points (10 for all transects, except transects 4, 5, and 8 for which we have 3, 2, and 3 points) per transect.</p>
 </div>
 
+### The GLM approach
 
-### L'approche GLM
-
-On souhaite analyser ces données. On n'a pas à faire à des données binaires ici comme dans le début de ce chapitre, mais des données de comptage. Pour modéliser ce type de données, on utilise une distribution de Poisson avec une fonction de lien logarithmique $\log(\theta_i) = \beta_0 + \beta_1 \text{temp}_{i}$ où $\text{temp}_{i}$ est la température :
+We want to analyse these data. Here we are not dealing with binary data as in the beginning of this chapter, but with **count data**. To model this type of response, we use a **Poisson** distribution with a **log link**,
+\(\log(\theta_i) = \beta_0 + \beta_1\, \text{temp}_i\), where \(\text{temp}_i\) is temperature:
 
 \begin{align}
-   \text{y}_i &\sim \text{Poisson(}\theta_i) &\text{[vraisemblance]}\\
-  \text{log}(\theta_i) &= \beta_{0} + \beta_1 \; \text{temp}_{i} &\text{[relation linéaire]} \\
-  \theta_i &= e^{\beta_0 + \beta_1 \; \text{temp}_{i}} &\text{[relation transformée]} \\
-  \beta_0, \beta_1 &\sim \text{Normale}(0, 1.5) &\text{[prior sur les paramètres]} \\
+  y_i &\sim \text{Poisson}(\theta_i) &\text{[likelihood]}\\
+  \log(\theta_i) &= \beta_{0} + \beta_1 \; \text{temp}_{i} &\text{[linear predictor]} \\
+  \theta_i &= \exp(\beta_0 + \beta_1 \; \text{temp}_{i}) &\text{[transformed mean]} \\
+  \beta_0, \beta_1 &\sim \text{Normal}(0, 1.5) &\text{[priors]} \\
 \end{align}
 
-Cette distribution est relativement facile à manipuler, puisqu'entre autres, elle a un seul paramètre $\theta$ qui donne le taux d'apparition de l'événement modélisé, et qu'en moyenne, le nombre attendu de ragondins ici devrait être égal à ce paramètre. 
+This distribution is relatively easy to handle because, among other things, it has a single parameter \(\text{theta}\) that gives the rate of occurrence of the event being modelled, and because on average the expected number of coypus here should be equal to that parameter.
 
-Dans ce GLM avec distribution de Poisson, les coefficients $\beta_0$ et $\beta_1$ s’interprètent sur l’échelle logarithmique. Plus précisément, une variation d’une unité de température entraîne une multiplication du nombre moyen de ragondins par $\exp(\beta_1)$. Par exemple, si $\beta_1 = 0.3$, alors une augmentation d’un degré correspond à une hausse attendue d’environ $35\%$ du nombre moyen de ragondins, puisque $\exp(0.3) \approx 1.35$. On peut aussi visualiser graphiquement la relation entre le nombre de ragondins et la température, comme dans les Figures \@ref(fig:pooling-ragondins) et \@ref(fig:partial-ragondins) à venir.
+In a Poisson GLM, the coefficients \(\beta_0\) and \(\beta_1\) are interpreted on the **log scale**. More precisely, a one-unit increase in temperature multiplies the mean number of coypus by \(\exp(\beta_1)\). For instance, if \(\beta_1 = 0.3\), then a one-degree increase corresponds to an expected increase of about \(35\%\) in the mean number of coypus, because \(\exp(0.3) \approx 1.35\). We can also visualise the relationship between coypu counts and temperature, as in Figures \@ref(fig:pooling-coypus) and \@ref(fig:partial-coypus) below.
 
-Dans un premier modèle, oublions la structure en groupes/niveaux dans les données, ici les transects. On fait passer une seule droite dans le nuage de points, c'est le modèle avec "complete pooling" ou regroupement complet : 
+In a first model, let us ignore the grouping / multilevel structure in the data (here: transects). We fit a single curve through the point cloud: this is the **complete pooling** model:
+
+
 
 
 ``` r
-# on n'oublie pas de standardiser la covariable température
+# do not forget to standardise the temperature covariate
 sim_simple$Temp <- scale(sim_simple$Temperature)
 
-# modèle avec complete pooling 
+# complete pooling model
 fit_complete <- brm(Ragondins ~ Temp,
-                    data = sim_simple, # données simulées
-                    family = poisson("log")) # distribution de Poisson, lien log
+                    data = sim_simple,              # simulated data
+                    family = poisson("log"))         # Poisson distribution, log link
 ```
 
-Les résultats sont les suivants : 
+The results are:
+
 
 ``` r
 summary(fit_complete)
@@ -194,23 +189,27 @@ summary(fit_complete)
 #> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-Ici on ignore que les données sont mesurées par transect, et on suppose à tort que toutes les observations sont indépendantes. Le risque, c’est de tirer de mauvaises conclusions : on peut croire qu’une seule relation existe, alors que les différences ne sont pas dues à la température, mais aux variations d’un transect à l’autre, ou au contraire on peut passer à côté d’une vraie tendance. Un test d'ajustement permet de voir dans la Figure \@ref(fig:ppcheck-complete) que l'ajustement n'est pas bon : 
+Here we ignore that observations are collected by transect, and we incorrectly assume that all observations are independent. The risk is to draw misleading conclusions: we might think there is a single relationship while differences are actually due to transect-to-transect variation, or conversely we might miss a true trend. A model check shows in Figure \@ref(fig:ppcheck-complete) that the fit is poor:
+
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/ppcheck-complete-1.png" alt="Vérification de l'adéquation du modèle avec complete pooling ou regroupement complet. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée. Les distributions simulées (en bleu) sont comparées aux données observées (en noir). Le mauvais recouvrement indique une mauvaise adéquation du modèle aux données." width="90%" />
-<p class="caption">(\#fig:ppcheck-complete)Vérification de l'adéquation du modèle avec complete pooling ou regroupement complet. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée. Les distributions simulées (en bleu) sont comparées aux données observées (en noir). Le mauvais recouvrement indique une mauvaise adéquation du modèle aux données.</p>
+<img src="06-glms_files/figure-html/ppcheck-complete-1.png" alt="Model-check for the complete pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black). Poor overlap indicates a lack of fit." width="90%" />
+<p class="caption">(\#fig:ppcheck-complete)Model-check for the complete pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black). Poor overlap indicates a lack of fit.</p>
 </div>
 
-Pour prendre en compte la structuration des données, on peut ajuster un autre modèle dans lequel le transect est traité comme un effet fixe. Autrement dit, on ajuste une droite séparée pour chaque transect, avec son propre intercept, mais avec la même pente : 
+To account for the structure in the data, we can fit another model in which transect is treated as a **fixed effect**. In other words, we fit a separate curve for each transect, with its own intercept, but a common slope:
+
+
 
 
 ``` r
-# modèle avec no pooling / pas de regroupement (effet fixe transect)
+# no pooling model (transect as a fixed effect)
 fit_nopool <- brm(Ragondins ~ Temp + as.factor(Transect),
-                    data = sim_simple, # données simulées
-                    family = poisson("log")) # distribution de Poisson, lien log
+                  data = sim_simple,
+                  family = poisson("log"))
 ```
 
-Les résultats sont les suivants :
+The results are:
+
 
 ``` r
 summary(fit_nopool)
@@ -240,100 +239,107 @@ summary(fit_nopool)
 #> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-Ici j'ai indiqué à `brms` de considérer le transect comme une variable catégorielle, un facteur, c'est le `as.factor(Transect)` dans l'appel à la fonction `brm()`. Par défaut, le premier niveau du facteur (ici le transect 1) est utilisé comme niveau de référence. Cela signifie que l’intercept $\beta_0$ estimé dans le modèle correspond au transect 1, et que les coefficients associés aux autres transects représentent les écarts (sur l'échelle log) par rapport à ce transect 1. Par exemple, on estime $\beta_0$ à 3.9, c'est l'intercept pour le transect 1. On estime aussi le décalage entre le transect 1 et le transect 2 à 0.04. Alors l'intercept pour le transect 2 est donné par 3.94. Ce calcul peut être répété pour chaque transect pour obtenir les intercepts spécifiques, que l’on peut ensuite transformer via l'exponentielle pour retrouver le nombre moyen attendu de ragondins (sur l'échelle d'origine) pour une température moyenne (qui vaut 0 ici puisqu'on a standardisé la variable température) :
+Here I told `brms` to treat transect as a categorical variable (a factor), via `as.factor(Transect)` in the call to `brm()`. By default, the first factor level (here transect 1) is used as the reference. This means that the intercept \(\beta_0\) estimated in the model corresponds to transect 1, and the coefficients for other transects represent (on the log scale) deviations relative to transect 1. For example, the intercept for transect 1 is estimated as 3.9. The shift between transect 1 and transect 2 is estimated as 0.04. Therefore, the intercept for transect 2 is: 3.94.
+
+We can repeat this for each transect to obtain transect-specific intercepts, and then exponentiate them to recover the expected mean number of coypus (on the original scale) at **average temperature** (which equals 0 here because temperature has been standardised):
+
 
 ``` r
-# extraire l'intercept (référence = Transect 1)
+# extract the intercept (reference = Transect 1)
 beta0 <- fixef(fit_nopool)["Intercept", "Estimate"]
 
-# tous les coefficients du modèle
+# all model coefficients
 coefs <- fixef(fit_nopool)
 
-# effets associés aux autres transects
+# effects associated with the other transects
 coefs_transects <- coefs[grep("as.factor", rownames(coefs)), "Estimate"]
 
-# calcul des intercepts par transect
+# compute intercepts by transect (on the log scale)
 intercepts_log <- c(
   Transect1 = beta0,
   beta0 + coefs_transects
 )
 
-# calcul des nombres moyens attendus de ragondins sur l’échelle d’origine
-nombres <- exp(intercepts_log)
+# expected mean counts on the original scale
+means <- exp(intercepts_log)
 
-# le tableau qui résume
+# summary table
 df_intercepts <- data.frame(
   Transect = names(intercepts_log),
   Intercept_log = round(intercepts_log, 2),
-  Nombre = round(nombres, 2)
+  Mean_count = round(means, 2)
 )
 
-# affichage
+# display
 df_intercepts
-#>                                Transect Intercept_log Nombre
-#> Transect1                     Transect1          3.90  49.60
-#> as.factorTransect2   as.factorTransect2          3.94  51.48
-#> as.factorTransect3   as.factorTransect3          3.79  44.15
-#> as.factorTransect4   as.factorTransect4          3.95  51.94
-#> as.factorTransect5   as.factorTransect5          3.99  54.02
-#> as.factorTransect6   as.factorTransect6          4.39  80.75
-#> as.factorTransect7   as.factorTransect7          4.10  60.22
-#> as.factorTransect8   as.factorTransect8          3.98  53.74
-#> as.factorTransect9   as.factorTransect9          4.19  65.76
-#> as.factorTransect10 as.factorTransect10          4.55  94.53
+#>                                Transect Intercept_log Mean_count
+#> Transect1                     Transect1          3.90      49.60
+#> as.factorTransect2   as.factorTransect2          3.94      51.48
+#> as.factorTransect3   as.factorTransect3          3.79      44.15
+#> as.factorTransect4   as.factorTransect4          3.95      51.94
+#> as.factorTransect5   as.factorTransect5          3.99      54.02
+#> as.factorTransect6   as.factorTransect6          4.39      80.75
+#> as.factorTransect7   as.factorTransect7          4.10      60.22
+#> as.factorTransect8   as.factorTransect8          3.98      53.74
+#> as.factorTransect9   as.factorTransect9          4.19      65.76
+#> as.factorTransect10 as.factorTransect10          4.55      94.53
 ```
 
-On estime bien un intercept pour chaque transect, donc 10 intercepts, et la pente, c'est-à-dire l'effet de la température, est la même pour tous les transects. Notez aussi que les valeurs obtenues `Nombre` ici sont des moyennes attendues issues du modèle de Poisson. Ce sont donc des valeurs continues, décimales, bien que les données observées soient des comptages entiers. C'est une caractéristique des modèles de Poisson : la variable à prédire est discrète, mais le modèle s’appuie sur une moyenne continue pour modéliser sa distribution.
+We indeed estimate one intercept per transect (so 10 intercepts), and a common slope (the temperature effect) shared by all transects. Note that the `Mean_count` values are Poisson means. They are continuous (possibly non-integer) even though the observed data are integer counts. This is a key feature of Poisson models: the response is discrete, but the model is parameterised through a continuous mean.
 
-La qualité de l'ajustement est meilleure comme on le voit dans la Figure \@ref(fig:ppcheck-nopool) : 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/ppcheck-nopool-1.png" alt="Vérification de l'adéquation du modèle avec no pooling ou pas de regroupement. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée. Les distributions simulées (en bleu) sont comparées aux données observées (en noir)." width="90%" />
-<p class="caption">(\#fig:ppcheck-nopool)Vérification de l'adéquation du modèle avec no pooling ou pas de regroupement. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée. Les distributions simulées (en bleu) sont comparées aux données observées (en noir).</p>
-</div>
-
-Ce modèle "no pooling" fait mieux que le modèle "complete pooling", comme on peut le voir dans la Figure \@ref(fig:pooling-ragondins), mais il reste insatisfaisant. L'approche "no pooling" consiste à ajuster un modèle indépendant pour chaque transect, sans partager d'information entre ces groupes. Cela pose deux problèmes : d'une part, on ne peut pas généraliser les résultats obtenus à d'autres transects que ceux observés ; d'autre part, on ignore des informations potentiellement utiles en supposant que chaque transect n’a rien à apprendre des autres. Cette stratégie devient particulièrement inefficace lorsque chaque groupe comporte peu d'observations.
+The fit is better, as shown in Figure \@ref(fig:ppcheck-nopool):
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/pooling-ragondins-1.png" alt="Comparaison entre les modèles complete pooling (noir) et no pooling (rouge) pour prédire le nombre de ragondins en fonction de la température, par transect. Le modèle no pooling ajuste une courbe indépendante pour chaque transect, tandis que le complete pooling suppose une relation commune." width="90%" />
-<p class="caption">(\#fig:pooling-ragondins)Comparaison entre les modèles complete pooling (noir) et no pooling (rouge) pour prédire le nombre de ragondins en fonction de la température, par transect. Le modèle no pooling ajuste une courbe indépendante pour chaque transect, tandis que le complete pooling suppose une relation commune.</p>
+<img src="06-glms_files/figure-html/ppcheck-nopool-1.png" alt="Model-check for the no pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black)." width="90%" />
+<p class="caption">(\#fig:ppcheck-nopool)Model-check for the no pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black).</p>
 </div>
 
-### L'approche GLMM
+This **no pooling** model improves on the **complete pooling** model (Figure \@ref(fig:pooling-coypus)), but it remains unsatisfying. No pooling means fitting an independent model for each transect, without sharing information across groups. This creates two issues: (i) we cannot generalise conclusions beyond the specific transects observed, and (ii) we potentially waste information by assuming that each transect has nothing to learn from the others. This strategy becomes especially inefficient when some groups have few observations.
 
-Revenons à notre objectif : évaluer l’effet de la température sur l’abondance des ragondins, tout en prenant en compte la structure hiérarchique des données (segments imbriqués dans des transects). Jusqu’ici, les modèles complete pooling et no pooling représentaient deux extrêmes : soit on supposait que tous les transects partageaient exactement la même relation température–abondance, soit on estimait une relation totalement indépendante pour chacun d’eux (via un intercept spécifique à chaque transect). Les modèles linéaires généralisés mixtes (GLMM), ou partial pooling, permettent un compromis plus réaliste.
+<div class="figure" style="text-align: center">
+<img src="06-glms_files/figure-html/pooling-coypus-1.png" alt="Comparison between complete pooling (black) and no pooling (red) models to predict coypu counts as a function of temperature, by transect. The no pooling model fits an independent curve for each transect, whereas complete pooling assumes a common relationship." width="90%" />
+<p class="caption">(\#fig:pooling-coypus)Comparison between complete pooling (black) and no pooling (red) models to predict coypu counts as a function of temperature, by transect. The no pooling model fits an independent curve for each transect, whereas complete pooling assumes a common relationship.</p>
+</div>
 
-On construit un GLMM dans lequel on autorise chaque transect à avoir un intercept propre - c’est-à-dire une abondance moyenne spécifique - mais on suppose que ces intercepts ne sont pas totalement indépendants. On les considère plutôt comme des variations aléatoires autour d’un intercept moyen $\beta_0$, issues d’une même distribution normale. Cela revient à dire que nos transects $\beta_{0j}$ (où $j$ varie de 1 à 10) sont tirés d’une population plus large de transects possibles, dans laquelle l’abondance moyenne varie d'un transect à l’autre. On modélise cette variabilité spatiale à l’aide d’un effet aléatoire, noté ici $\beta_{0j} \sim N(\beta_0,\sigma)$, où $\sigma$ est la variation entre transects.
+### The GLMM approach
 
-Autrement dit, chaque intercept par transect $\beta_{0j}$ peut s'écrire comme une déviation $b_j$ autour de l’intercept global $\beta_{0j} = \beta_0 + b_j$ avec $b_{j} \sim N(0,\sigma)$ où $\beta_0$ représente l’intercept moyen (pour un transect "typique") et $\sigma$ quantifie la variabilité entre transects. Par exemple, si l’intercept moyen est $\beta_0 = 2$, mais que le transect 4 a un intercept de $\beta_{04} = 3$, on dira que cet effet spécifique $b_4 = 1$ correspond à une abondance plus élevée que la moyenne.
+Let us return to our objective: assess the effect of temperature on coypu abundance while accounting for the hierarchical structure of the data (segments nested within transects). So far, the complete pooling and no pooling models represented two extremes: either all transects share exactly the same temperature–abundance relationship, or each transect has a completely independent relationship (via a transect-specific intercept). **Generalised linear mixed models (GLMMs)** implement a more realistic compromise, often called **partial pooling**.
 
-Cette modélisation hiérarchique permet de capturer l’hétérogénéité spatiale tout en partageant l'information entre groupes, ce qui est particulièrement utile lorsque certains transects comportent peu d’observations. On peut aussi voir le modèle partial pooling (3 paramètres estimés dans l'exemple ragondin : $\beta_0, \beta_1, \sigma$) comme un compromis entre le modèle complete pooling (2 paramètres estimés dans l'exemple ragondin : $\beta_0, \beta_1$) et le modèle no pooling (11 paramètres estimés dans l'exemple ragondin : 10 intercept et 1 pente $\beta_1$). 
+We build a GLMM where each transect has its own intercept—i.e., its own baseline abundance—but these intercepts are not treated as unrelated. Instead, they are modelled as random deviations around a global intercept \(\beta_0\), drawn from a common normal distribution. This means that the transect-specific intercepts \(\beta_{0j}\) (with \(j = 1,\dots,10\)) are viewed as coming from a larger population of possible transects, where baseline abundance varies across space. We capture this heterogeneity with a random effect, written here as \(\beta_{0j} \sim \text{Normal}(\beta_0, \sigma)\), where \(\sigma\) is the between-transect variability.
 
-Si on formalise un peu ça, le GLMM correspondant s'écrit : 
+Equivalently, each transect intercept can be written as \(\beta_{0j} = \beta_0 + b_j\), with \(b_j \sim \text{Normal}(0, \sigma)\). Here \(\beta_0\) is the intercept for a “typical” transect, and \(\sigma\) quantifies how much transects vary around that mean. For instance, if \(\beta_0 = 2\) but transect 4 has \(\beta_{04} = 3\), then the transect-specific deviation is \(b_4 = 1\), corresponding to higher-than-average abundance.
+
+This hierarchical structure shares information across groups, which is particularly useful when some transects have few observations. You can also view the partial pooling model (3 parameters estimated here: \(\beta_0, \beta_1, \sigma\)) as a compromise between the complete pooling model (2 parameters: \(\beta_0, \beta_1\)) and the no pooling model (11 parameters: 10 intercepts and 1 common slope \(\beta_1\)).
+
+Formally, the GLMM can be written as:
 
 \begin{align}
-   \text{y}_i &\sim \text{Poisson(}\theta_i) &\text{[vraisemblance]}\\
-  \text{log}(\theta_i) &= \beta_{0j} + \beta_1 \; \text{temp}_{i} &\text{[relation linéaire]} \\
-  \beta_{0j} &\sim \text{Normale}(\beta_0, \sigma) &\text{[effet aléatoire]} \\
-  \beta_0 &\sim \text{Normale}(0, 1.5) &\text{[prior sur l'intercept moyen]} \\
-  \sigma &\sim \text{Exp}(1) &\text{[prior pour l'erreur standard de l'effet aléatoire]} \\
-  \beta_1 &\sim \text{Normale}(0, 1.5) &\text{[prior pour la pente]} \\
+  y_i &\sim \text{Poisson}(\theta_i) &\text{[likelihood]}\\
+  \log(\theta_i) &= \beta_{0j} + \beta_1 \; \text{temp}_{i} &\text{[linear predictor]} \\
+  \beta_{0j} &\sim \text{Normal}(\beta_0, \sigma) &\text{[random effect]} \\
+  \beta_0 &\sim \text{Normal}(0, 1.5) &\text{[prior for the mean intercept]} \\
+  \sigma &\sim \text{Exp}(1) &\text{[prior for the random-effect SD]} \\
+  \beta_1 &\sim \text{Normal}(0, 1.5) &\text{[prior for the slope]} \\
 \end{align}
 
-#### Ajustement du modèle avec `brms`
+#### Fitting the model with `brms`
 
-On ajuste d'abord le GLMM avec partial pooling avec `brms` : 
+We first fit the partial pooling GLMM with `brms`:
+
+
 
 
 ``` r
-# modèle avec partial pooling (effet aléatoire transect)
-fit_partial <- brm(Ragondins ~ Temp + (1 | Transect), # relation nombre de ragondins vs température avec effet aléatoire transect sur l'intercept
-                    data = sim_simple, # données simulées
-                    family = poisson("log")) # distribution de Poisson, lien log
+# partial pooling model (transect random intercept)
+fit_partial <- brm(Ragondins ~ Temp + (1 | Transect), # count ~ temperature with a transect random intercept
+                   data = sim_simple,
+                   family = poisson("log"))
 ```
 
-Dans la syntaxe, l'effet aléatoire sur l'intercept est spécifié avec `(1 | Transect)`, où le `1` signifie qu'on travaille sur l'intercept, et qu'il y a un intercept par (c'est le `|`) transect. Si on voulait ajouter un effet aléatoire sur la pente, on écrirait `(1 + Temp | Transect)`.   
+In this syntax, the random intercept is specified as `(1 | Transect)`, where `1` means we are modelling the intercept, and `|` indicates “one intercept per transect”. If we wanted to include a random slope as well, we would write `(1 + Temp | Transect)`.
 
-Les résultats sont : 
+The results are:
+
 
 ``` r
 summary(fit_partial)
@@ -359,61 +365,68 @@ summary(fit_partial)
 #> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-Ce résumé fournit les estimations a posteriori des effets fixes ainsi que des écarts-types des effets aléatoires. La ligne `sd(Intercept)` donne l'estimation de $\sigma$, proche du 0.3 utilisé pour simuler les données (l'intervalle de crédibilité contient la vraie valeur). Les lignes `Intercept` et `Temp` donnent les estimations de $\beta_0$ et $\beta_1$ sur l'échelle log. On verra un peu plus tard comment vérifier que ces estimations sont proches des valeurs utilisées pour simuler les données.
+This summary reports posterior estimates for the fixed effects and the standard deviations of the random effects. The line `sd(Intercept)` corresponds to \(\sigma\), close to the value 0.3 used to simulate the data (the credible interval includes the true value). The lines `Intercept` and `Temp` provide estimates of \(\beta_0\) and \(\beta_1\) on the log scale. We will see below how to check that these estimates are close to the values used in simulation.
 
-On peut aussi jeter un coup d'oeil aux densités et traces des paramètres (Figure \@ref(fig:model-diagnostics)) : 
+We can also inspect posterior densities and trace plots (Figure \@ref(fig:model-diagnostics)):
+
 
 ``` r
 plot(fit_partial)
 ```
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/model-diagnostics-1.png" alt="Vérification de la convergence des chaînes MCMC pour le modèle avec partial pooling. Dans les histogrammes (colonne de gauche), l’axe des abscisses représente les valeurs possibles du paramètre estimé (intercept, pente ou écart-type) et l’axe des ordonnées correspond à leur fréquence dans l’échantillon a posteriori. Dans les trace plots (colonne de droite), l’axe des abscisses indique le numéro d’itération du MCMC, tandis que l’axe des ordonnées représente la valeur simulée du paramètre à chaque itération." width="90%" />
-<p class="caption">(\#fig:model-diagnostics)Vérification de la convergence des chaînes MCMC pour le modèle avec partial pooling. Dans les histogrammes (colonne de gauche), l’axe des abscisses représente les valeurs possibles du paramètre estimé (intercept, pente ou écart-type) et l’axe des ordonnées correspond à leur fréquence dans l’échantillon a posteriori. Dans les trace plots (colonne de droite), l’axe des abscisses indique le numéro d’itération du MCMC, tandis que l’axe des ordonnées représente la valeur simulée du paramètre à chaque itération.</p>
+<img src="06-glms_files/figure-html/model-diagnostics-1.png" alt="Convergence diagnostics for the partial pooling model. In the histograms (left column), the x-axis shows possible parameter values (intercept, slope, or SD) and the y-axis shows their frequency in the posterior sample. In the trace plots (right column), the x-axis shows the MCMC iteration and the y-axis shows the sampled parameter value." width="90%" />
+<p class="caption">(\#fig:model-diagnostics)Convergence diagnostics for the partial pooling model. In the histograms (left column), the x-axis shows possible parameter values (intercept, slope, or SD) and the y-axis shows their frequency in the posterior sample. In the trace plots (right column), the x-axis shows the MCMC iteration and the y-axis shows the sampled parameter value.</p>
 </div>
 
-On peut alors mettre à jour la Figure \@ref(fig:pooling-ragondins) avec la Figure \@ref(fig:partial-ragondins) :
+We can now update Figure \@ref(fig:pooling-coypus) with Figure \@ref(fig:partial-coypus):
+
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/partial-ragondins-1.png" alt="Comparaison entre les modèles complete pooling (noir), no pooling (rouge) et partial pooling (bleu) pour prédire le nombre de ragondins en fonction de la température, par transect. Le modèle no pooling ajuste une courbe indépendante pour chaque transect, le complete pooling suppose une relation commune, tandis que le partial pooling fournit un compromis grâce à l'effet aléatoire transect." width="90%" />
-<p class="caption">(\#fig:partial-ragondins)Comparaison entre les modèles complete pooling (noir), no pooling (rouge) et partial pooling (bleu) pour prédire le nombre de ragondins en fonction de la température, par transect. Le modèle no pooling ajuste une courbe indépendante pour chaque transect, le complete pooling suppose une relation commune, tandis que le partial pooling fournit un compromis grâce à l'effet aléatoire transect.</p>
+<img src="06-glms_files/figure-html/partial-coypus-1.png" alt="Comparison among complete pooling (black), no pooling (red), and partial pooling (blue) models to predict coypu counts as a function of temperature, by transect. No pooling fits a separate curve for each transect, complete pooling assumes a common relationship, and partial pooling provides a compromise via a transect random effect." width="90%" />
+<p class="caption">(\#fig:partial-coypus)Comparison among complete pooling (black), no pooling (red), and partial pooling (blue) models to predict coypu counts as a function of temperature, by transect. No pooling fits a separate curve for each transect, complete pooling assumes a common relationship, and partial pooling provides a compromise via a transect random effect.</p>
 </div>
 
-On voit que l'ajustement fourni par le partial pooling est très similaire au no pooling, et bien meilleur que le complete pooling. Il y a une petite différence pour les transects avec peu de points d'échantillonnage, les transects 4, 5 et 8, pour lesquels le partial pooling se rapproche du complete pooling. En l'absence de plus d'information (de données) pour ces transects, il est plutôt raisonnable que les estimations se rapprochent de la moyenne donnée par le modèle avec complete pooling plutôt que vers des valeurs extrêmes, atypiques. Rappelez-vous que dans un GLMM, les niveaux de l'effet aléatoire sont caractéristiques d'une population avec une moyenne commune. C'est ce partage d'information entre les transects avec 10 points d'échantillonnage et ceux avec 2 ou 3 points, on parle de "borrowing strength" qui permet d'atténuer, de tamponner, on parle de "shrinkage", la tendance à sur-ajuster du modèle avec no pooling ou à effet fixe, et en ce sens on parle parfois de "regularization". 
+We see that the partial pooling fit is very similar to the no pooling fit, and much better than complete pooling. There is a small difference for transects with few sampling points (transects 4, 5, and 8): for those, partial pooling is closer to complete pooling. In the absence of much information for these transects, it is reasonable that their estimates are pulled toward the overall mean rather than toward extreme, transect-specific values.
 
-La qualité de l'ajustement est validée comme on le voit dans la Figure \@ref(fig:ppcheck-partial) : 
+This is the information-sharing mechanism known as **borrowing strength**. It leads to **shrinkage**, which buffers the tendency of the no pooling (fixed-effect) model to overfit. In that sense, partial pooling also provides a form of **regularisation**.
+
+Model fit is validated in Figure \@ref(fig:ppcheck-partial):
+
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/ppcheck-partial-1.png" alt="Vérification de l'adéquation du modèle avec partial pooling ou regroupement partiel. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée. Les distributions simulées (en bleu) sont comparées aux données observées (en noir)." width="90%" />
-<p class="caption">(\#fig:ppcheck-partial)Vérification de l'adéquation du modèle avec partial pooling ou regroupement partiel. L’axe des abscisses représente les valeurs possibles de la variable réponse simulée ou observée. L’axe des ordonnées indique leur densité estimée. Les distributions simulées (en bleu) sont comparées aux données observées (en noir).</p>
+<img src="06-glms_files/figure-html/ppcheck-partial-1.png" alt="Model-check for the partial pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black)." width="90%" />
+<p class="caption">(\#fig:ppcheck-partial)Model-check for the partial pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black).</p>
 </div>
 
-Lorsqu'on ajuste un modèle sur une variable standardisée, comme ici la température centrée-réduite, les coefficients estimés ($\beta_0, \beta_1$) s'interprètent sur cette échelle modifiée : $\beta_1$ représente l'effet d'un écart-type de température, et $\beta_0$ correspond à la valeur attendue quand la température standardisée est 0, c'est-à-dire à la température moyenne. On a souvent envie d'exprimer les effets sur des unités compréhensibles, ici les degrés celsius, plutôt qu'en écart-type de température, qui est plus abstrait. Pour revenir à une interprétation sur l'échelle réelle (en degré celsius donc), les coefficients estimés sur la température centrée-réduite peuvent être transformés pour revenir à l'échelle réelle à l'aide des formules suivantes :
+When fitting a model with a standardised predictor (here, temperature), coefficients \(\beta_0\) and \(\beta_1\) are interpreted on that modified scale: \(\beta_1\) corresponds to a one-standard-deviation change in temperature, and \(\beta_0\) corresponds to the expected value when standardised temperature equals 0 (i.e., at mean temperature). In practice we often want effects in natural units (degrees Celsius) rather than in standard deviations. We can convert coefficients back to the original scale using:
 
 $$
-\beta_1^{\text{réel}} = \frac{\beta_1^{\text{standardisé}}}{\text{écart-type de la température}}
+\beta_1^{\text{original}} = \frac{\beta_1^{\text{standardised}}}{\text{SD}(\text{temperature})}
 $$
 
 $$
-\beta_0^{\text{réel}} = \beta_0^{\text{standardisé}} - \beta_1^{\text{standardisé}} \times \frac{\text{moyenne de la température}}{\text{écart-type de la température}}
+\beta_0^{\text{original}} = \beta_0^{\text{standardised}} - \beta_1^{\text{standardised}} \times \frac{\text{Mean}(\text{temperature})}{\text{SD}(\text{temperature})}
 $$
 
-Dans `R`, vous pouvez utiliser le code suivant : 
+In `R`, you can use:
+
 
 ``` r
-# on récupère les valeurs simulées dans les distributions a posteriori des paramètres
+# extract posterior draws for fixed effects
 post <- as_draws_matrix(fit_partial)
 sbzero <- post[, "b_Intercept"]
-sbun <- post[, "b_Temp"]
+sbun   <- post[, "b_Temp"]
 
-# on récupère moyenne et écart-type de la température
+# mean and SD of temperature
 mu <- attr(scale(sim_simple$Temperature), "scaled:center")
 sg <- attr(scale(sim_simple$Temperature), "scaled:scale")
 
-# on convertit les coefficients standardisés
-bun   <- sbun / sg # beta1 réel
-bzero <- sbzero - sbun * mu / sg # beta0 réel
+# convert standardised coefficients to the original scale
+bun   <- sbun / sg                 # beta1 (original scale)
+bzero <- sbzero - sbun * mu / sg   # beta0 (original scale)
 ```
 
-On peut alors visualiser les coefficients sur l’échelle originale et comparer à la valeur utilisée pour simuler les données comme dans les Figures \@ref(fig:hist-b0-reel-brms) et \@ref(fig:hist-b1-reel-brms) : 
+We can then visualise coefficients on the original scale and compare them to the values used for simulation (Figures \@ref(fig:hist-b0-original-brms) and \@ref(fig:hist-b1-original-brms)):
+
 
 ``` r
 tibble(b0 = bzero) %>%
@@ -422,14 +435,14 @@ tibble(b0 = bzero) %>%
   geom_vline(xintercept = 0, color = "red", linewidth = 1.2) +
   labs(
     x = expression(beta[0]),
-    y = "Fréquence"
+    y = "Frequency"
   ) +
   theme_minimal()
 ```
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b0-reel-brms-1.png" alt="Distribution a posteriori de l'intercept moyen (échelle réelle). La ligne rouge indique la vraie valeur (0)." width="90%" />
-<p class="caption">(\#fig:hist-b0-reel-brms)Distribution a posteriori de l'intercept moyen (échelle réelle). La ligne rouge indique la vraie valeur (0).</p>
+<img src="06-glms_files/figure-html/hist-b0-original-brms-1.png" alt="Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0)." width="90%" />
+<p class="caption">(\#fig:hist-b0-original-brms)Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0).</p>
 </div>
 
 
@@ -440,85 +453,100 @@ tibble(b1 = bun) %>%
   geom_vline(xintercept = 0.2, color = "red", linewidth = 1.2) +
   labs(
     x = expression(beta[1]),
-    y = "Fréquence"
+    y = "Frequency"
   ) +
   theme_minimal()
 ```
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b1-reel-brms-1.png" alt="Distribution a posteriori de l'effet de la température (échelle réelle). La ligne rouge indique la vraie valeur (0.2)." width="90%" />
-<p class="caption">(\#fig:hist-b1-reel-brms)Distribution a posteriori de l'effet de la température (échelle réelle). La ligne rouge indique la vraie valeur (0.2).</p>
+<img src="06-glms_files/figure-html/hist-b1-original-brms-1.png" alt="Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2)." width="90%" />
+<p class="caption">(\#fig:hist-b1-original-brms)Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2).</p>
 </div>
 
-On retrouve les paramètres ayant servi à simuler les données (en rouge). Il ne s'agit que d'une seule simulation, c'est donc normal qu'en moyenne on n'obtienne pas exactement la même chose (c'est-à-dire que le trait rouge ne coïncide pas plus à la plus grande valeur de l'histogramme), c'est seulement en répétant l'expérience de simulations un grand nombre de fois que cela se produirait. 
+We recover the parameters used to simulate the data (in red). This is only one simulation run, so it is normal that the posterior mode does not coincide exactly with the true value. Repeating the simulation many times would allow us to assess bias and variability more formally.
 
-En bonus, comparons les modèles avec et sans effet de la température. Cela permet de tester la pertinence de la température comme variable explicative : 
+As a bonus, let us compare models with and without a temperature effect. This evaluates whether temperature is a useful predictor:
+
+
 
 
 ``` r
-# modèle avec partial pooling (effet aléatoire transect)
-fit_partial2 <- brm(Ragondins ~ 1 + (1 | Transect), # un intercept moyen, pas d'effet de la température, avec l'effet aléatoire transect
-                    data = sim_simple, # données simulées
-                    family = poisson("log")) # distribution de Poisson, lien log
+# partial pooling model without temperature
+fit_partial2 <- brm(Ragondins ~ 1 + (1 | Transect),
+                    data = sim_simple,
+                    family = poisson("log"))
 ```
 
-On calcule le WAIC pour chaque modèle, et on les compare : 
+We compute WAIC for each model and compare:
+
 
 ``` r
 waic1 <- waic(fit_partial)
 waic2 <- waic(fit_partial2)
+
 tibble(
-  Modèle = c("Avec température", "Sans température"),
-  WAIC = c(waic1$estimates["waic", "Estimate"],
-           waic2$estimates["waic", "Estimate"])
+  Model = c("With temperature", "Without temperature"),
+  WAIC  = c(waic1$estimates["waic", "Estimate"],
+            waic2$estimates["waic", "Estimate"])
 )
 #> # A tibble: 2 × 2
-#>   Modèle            WAIC
-#>   <chr>            <dbl>
-#> 1 Avec température  542.
-#> 2 Sans température  551.
+#>   Model                WAIC
+#>   <chr>               <dbl>
+#> 1 With temperature     542.
+#> 2 Without temperature  551.
 ```
 
-En conclusion, le modèle incluant la température offre un meilleur ajustement aux données selon le critère WAIC. Et fort heureusement puisqu'on a simulé selon ce modèle ! 
+In conclusion, the model including temperature provides a better fit according to WAIC—which is reassuring since the data were simulated under that model.
 
-#### Ajustement du modèle avec `NIMBLE`
+#### Fitting the model with `NIMBLE`
 
-On fait la même analyse avec un GLMM et `NIMBLE` cette fois-ci. On commence par écrire le code : 
+We now repeat the analysis with a GLMM in `NIMBLE`. We start by writing the model code:
+
+
 
 
 ``` r
 model <- nimbleCode({
   for (i in 1:n){
-    count[i] ~ dpois(theta[i]) # loi de Poisson
-    log(theta[i]) <- intercept[transect[i]] + # intercept aléatoire par transect
-                       beta1 * x[i] # effet linéaire de la température
+    count[i] ~ dpois(theta[i])                # Poisson likelihood
+    log(theta[i]) <- intercept[transect[i]] + # random intercept by transect
+                     beta1 * x[i]             # temperature effect
   }
+
   for (j in 1:nbtransects){
-    intercept[j] ~ dnorm(beta0, sd = sigma) # intercepts ~ N(beta0, sigma)
+    intercept[j] ~ dnorm(beta0, sd = sigma)   # intercepts ~ Normal(beta0, sigma)
   }
-  beta0 ~ dnorm(0, sd = 1.5) # prior sur la moyenne des intercepts
-  sigma ~ dexp(1) # prior non informatif sur l'écart-type
-  beta1 ~ dnorm(0, sd = 1.5) # prior sur le coef linéaire
+
+  beta0 ~ dnorm(0, sd = 1.5)                  # prior for the mean intercept
+  sigma ~ dexp(1)                             # prior for the random-effect SD
+  beta1 ~ dnorm(0, sd = 1.5)                  # prior for the slope
 })
 ```
 
-Commentons un peu ce code. On écrit la vraisemblance des données `count[i]` avec une loi de Poisson `count[i] ~ dpois(theta[i])` de chacune des 200 mesures (20 points fois 10 transects) dans la boucle `for (i in 1:n)`. L'intensité `theta[i]`, c’est-à-dire le nombre attendu de ragondins, est liée à deux effets : `intercept[transect[i]]` est l'intercept spécifique au transect auquel appartient l’observation $i$ et `beta1 * x[i]` est l'effet linéaire de la température. Le terme `intercept[transect[i]]` illustre ce qu’on appelle l’indexation imbriquée (ou "nested indexing") : pour chaque observation $i$, on va chercher le bon intercept dans un vecteur d’intercepts (`intercept[j]`) à l’aide de l’indice `transect[i]`. Le vecteur transect contient, pour chaque observation $i$, l’identifiant du transect auquel elle appartient. Par exemple, si l’observation 5 appartient au transect 3, alors `transect[5] = 3`, et on va chercher directement `intercept[3]`, l'intercept spécifique au transect 3. Ce "nested indexing" (ici, points imbriqués dans des transects) évite d’écrire une boucle pour parcourir les transects (et donc d'avoir une double boucle) : chaque observation récupère dynamiquement l’intercept qui lui correspond. Le bloc `for (j in 1:nbtransects){intercept[j] ~ dnorm(beta0, sd = sigma)}` précise la structure hiérarchique du modèle : les intercepts spécifiques à chaque transect (`intercept[j]`) ne sont pas estimés séparément comme dans un modèle classique, mais sont considérés comme des tirages aléatoires autour d’une moyenne globale `beta0`, avec une variabilité entre transects donnée par `sigma`.
+Let us comment briefly on this code. In the loop `for (i in 1:n)`, we define a Poisson likelihood for each observation, `count[i] ~ dpois(theta[i])`. The intensity `theta[i]` (the expected number of coypus) depends on two components: `intercept[transect[i]]` is the intercept specific to the transect to which observation \(i\) belongs, and `beta1 * x[i]` is the linear temperature effect.
 
-On lit les constantes et les données : 
+The term `intercept[transect[i]]` illustrates **nested indexing**: for each observation \(i\), we retrieve the appropriate intercept from a vector of transect-specific intercepts (`intercept[j]`) using the index `transect[i]`. The vector `transect` contains, for each observation \(i\), the identifier of the transect it belongs to. For example, if observation 5 belongs to transect 3, then `transect[5] = 3` and we use `intercept[3]`. This avoids writing a double loop over transects: each observation dynamically picks the intercept that corresponds to its group.
+
+The block `for (j in 1:nbtransects){ intercept[j] ~ dnorm(beta0, sd = sigma) }` defines the hierarchical structure: transect intercepts are not estimated independently (as in a fixed-effect model), but are treated as random draws around a global mean `beta0`, with between-transect variability `sigma`.
+
+We read constants and data:
+
 
 ``` r
 my.constants <- list(
-  n = nrow(sim_simple), # nombre d'observations
-  nbtransects = transects # nombre de transects
+  n = nrow(sim_simple),       # number of observations
+  nbtransects = transects     # number of transects
 )
+
 my.data <- list(
-  x = as.vector(sim_simple$Temp), # covariable standardisée
-  count = sim_simple$Ragondins, # comptages
-  transect = as.numeric(sim_simple$Transect) # identifiant du transect (effet aléatoire)
+  x = as.vector(sim_simple$Temp),               # standardised covariate
+  count = sim_simple$Ragondins,                 # counts
+  transect = as.numeric(sim_simple$Transect)    # transect ID
 )
 ```
 
-On spécifie les valeurs initiales pour les chaînes MCMC (pour 2 chaînes) :
+We specify initial values for two MCMC chains:
+
 
 ``` r
 init1 <- list(
@@ -538,16 +566,17 @@ init2 <- list(
 initial.values <- list(init1, init2)
 ```
 
-On spécifie aussi les paramètres à surveiller, ainsi que les détails en lien avec les chaînes MCMC : 
+We also specify parameters to monitor and MCMC settings:
+
 
 ``` r
 parameters.to.save <- c("beta1", "beta0", "sigma")
-n.iter <- 5000 # nb itérations totales
-n.burnin <- 1000 # nb itérations burn-in
-n.chains <- 2 # nombre de chaînes
+n.iter   <- 5000   # total iterations
+n.burnin <- 1000   # burn-in
+n.chains <- 2      # number of chains
 ```
 
-Finalement, on lance `NIMBLE` :
+Finally, we run `NIMBLE`:
 
 
 ``` r
@@ -560,10 +589,13 @@ mcmc.output <- nimbleMCMC(
   niter = n.iter,
   nburnin = n.burnin,
   nchains = n.chains,
-  progressBar = FALSE)
+  progressBar = FALSE
+)
 ```
 
-On obtient comme résultats :
+The results are:
+
+
 
 
 ``` r
@@ -574,35 +606,38 @@ MCMCsummary(object = mcmc.output, round = 2)
 #> sigma 0.26 0.08 0.16 0.25  0.46 1.00   856
 ```
 
-Comme on l'a vu avec `brms`, on obtient les coefficients estimés sur la température centrée-réduite, et pour revenir à l'échelle réelle il nous faut utiliser les formules suivantes :
+As with `brms`, coefficients are estimated on the standardised temperature scale. To return to the original scale we use:
 
 $$
-\beta_1^{\text{réel}} = \frac{\beta_1^{\text{standardisé}}}{\text{écart-type de la température}}
+\beta_1^{\text{original}} = \frac{\beta_1^{\text{standardised}}}{\text{SD}(\text{temperature})}
 $$
 
 $$
-\beta_0^{\text{réel}} = \beta_0^{\text{standardisé}} - \beta_1^{\text{standardisé}} \times \frac{\text{moyenne de la température}}{\text{écart-type de la température}}
+\beta_0^{\text{original}} = \beta_0^{\text{standardised}} - \beta_1^{\text{standardised}} \times \frac{\text{Mean}(\text{temperature})}{\text{SD}(\text{temperature})}
 $$
-Dans `R`, vous pouvez utiliser le code suivant : 
+
+In `R`:
+
 
 ``` r
-# on concatène des 2 chaînes
-samples <- rbind(mcmc.output$chain1, mcmc.output$chain2)  
+# concatenate the two chains
+samples <- rbind(mcmc.output$chain1, mcmc.output$chain2)
 
-# on récupère les valuers simulées dans les distributions a posteriori des paramètres
-sbzero <- samples[, 'beta0'] # beta0 standardisé
-sbun   <- samples[, 'beta1'] # beta1 standardisé
+# posterior draws for coefficients (standardised scale)
+sbzero <- samples[, "beta0"]  # beta0 (standardised)
+sbun   <- samples[, "beta1"]  # beta1 (standardised)
 
-# on récupère moyenne et écart-type de la température
+# mean and SD of temperature
 mu <- attr(scale(sim_simple$Temperature), "scaled:center")
 sg <- attr(scale(sim_simple$Temperature), "scaled:scale")
 
-# on convertit les coefficients standardisés
-bun   <- sbun / sg # beta1 réel
-bzero <- sbzero - sbun * mu / sg # beta0 réel
+# convert to original scale
+bun   <- sbun / sg                 # beta1 (original scale)
+bzero <- sbzero - sbun * mu / sg   # beta0 (original scale)
 ```
 
-On peut alors visualiser les coefficients sur l’échelle originale et comparer à la valeur utiliser pour simuler les données comme dans les Figures \@ref(fig:hist-b0-reel) et \@ref(fig:hist-b1-reel) : 
+We can then visualise coefficients on the original scale and compare to the simulation values (Figures \@ref(fig:hist-b0-original) and \@ref(fig:hist-b1-original)):
+
 
 ``` r
 tibble(b0 = bzero) %>%
@@ -611,14 +646,14 @@ tibble(b0 = bzero) %>%
   geom_vline(xintercept = 0, color = "red", linewidth = 1.2) +
   labs(
     x = expression(beta[0]),
-    y = "Fréquence"
+    y = "Frequency"
   ) +
   theme_minimal()
 ```
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b0-reel-1.png" alt="Distribution a posteriori de l'intercept moyen (échelle réelle). La ligne rouge indique la vraie valeur (0)." width="90%" />
-<p class="caption">(\#fig:hist-b0-reel)Distribution a posteriori de l'intercept moyen (échelle réelle). La ligne rouge indique la vraie valeur (0).</p>
+<img src="06-glms_files/figure-html/hist-b0-original-1.png" alt="Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0)." width="90%" />
+<p class="caption">(\#fig:hist-b0-original)Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0).</p>
 </div>
 
 
@@ -629,22 +664,23 @@ tibble(b1 = bun) %>%
   geom_vline(xintercept = 0.2, color = "red", linewidth = 1.2) +
   labs(
     x = expression(beta[1]),
-    y = "Fréquence"
+    y = "Frequency"
   ) +
   theme_minimal()
 ```
 
 <div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b1-reel-1.png" alt="Distribution a posteriori de l'effet de la température (échelle réelle). La ligne rouge indique la vraie valeur (0.2)." width="90%" />
-<p class="caption">(\#fig:hist-b1-reel)Distribution a posteriori de l'effet de la température (échelle réelle). La ligne rouge indique la vraie valeur (0.2).</p>
+<img src="06-glms_files/figure-html/hist-b1-original-1.png" alt="Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2)." width="90%" />
+<p class="caption">(\#fig:hist-b1-original)Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2).</p>
 </div>
 
-On retrouve les paramètres ayant servi à simuler les données (en rouge). Comme avec `brms`, on n'a fait qu'une seule simulation, c'est donc normal qu'en moyenne on n'obtienne pas exactement la même chose (c'est-à-dire que le trait rouge ne coïncide pas plus à la plus grande valeur de l'histogramme), c'est seulement en répétant l'expérience de simulations un grand nombre de fois que cela se produirait. 
+We recover the parameters used to simulate the data (in red). As with `brms`, we ran only one simulation, so it is normal not to match the true values exactly. Repeating simulations many times would provide a more formal assessment.
 
-Comparons les modèles avec et sans température via le WAIC. Il nous faut ajuster le modèle sans la température : 
+Let us compare models with and without temperature using WAIC. We need to fit the model without temperature:
+
 
 ``` r
-# code du modèle sans température
+# model code without temperature
 model.null <- nimbleCode({
   for (i in 1:n){
     count[i] ~ dpois(theta[i])
@@ -656,8 +692,10 @@ model.null <- nimbleCode({
   beta0 ~ dnorm(0, sd = 1.5)
   sigma ~ dexp(1)
 })
-# exécution du modèle nul
+
+# run the null model
 parameters.null <- c("beta0", "sigma")
+
 mcmc.null <- nimbleMCMC(
   code = model.null,
   data = my.data,
@@ -673,51 +711,54 @@ mcmc.null <- nimbleMCMC(
 #>   [Warning] There are 3 individual pWAIC values that are greater than 0.4. This may indicate that the WAIC estimate is unstable (Vehtari et al., 2017), at least in cases without grouping of data nodes or multivariate data nodes.
 ```
 
-Il faut faire tourner à nouveau le modèle avec la température pour calculer le WAIC, en ajoutant `WAIC = TRUE` dans l'appel à la fonction `nimbleMCMC()`, je ne montre pas le code ici.
+We also need to rerun the full model with `WAIC = TRUE` (not shown here).
 
 
 
-Et on peut alors comparer : 
+We can then compare WAIC:
+
 
 ``` r
-# calcul du WAIC
+# WAIC values
 waic.full <- mcmc.output$WAIC$WAIC
 waic.null <- mcmc.null$WAIC$WAIC
 
-# affichage comparatif
+# comparison table
 tibble(
-  Modèle = c("Avec température", "Sans température"),
-  WAIC = c(waic.full,
-           waic.null)
+  Model = c("With temperature", "Without temperature"),
+  WAIC  = c(waic.full, waic.null)
 )
 #> # A tibble: 2 × 2
-#>   Modèle            WAIC
-#>   <chr>            <dbl>
-#> 1 Avec température  543.
-#> 2 Sans température  552.
+#>   Model                WAIC
+#>   <chr>               <dbl>
+#> 1 With temperature     542.
+#> 2 Without temperature  552.
 ```
 
-#### Ajustement du modèle en fréquentiste avec `lme4`
+#### Frequentist fit with `lme4`
 
-Pour clôre ce chapitre, je vous propose de faire la même analyse avec le package `lme4` en fréquentiste. 
+To close this chapter, let us run the same GLMM analysis in a frequentist framework using `lme4`.
 
-On charge le dit package : 
+We load the package:
+
 
 ``` r
 library(lme4)
 ```
 
-Puis on applique le GLMM, notez que la syntaxe de `brms` est inspirée de celle utilisée dans `lme4` : 
+Then we fit the GLMM (note that `brms` syntax is inspired by `lme4`):
+
 
 ``` r
 fit_lme4 <- glmer(
-  Ragondins ~ Temp + (1 | Transect), # formule complète
-  data   = sim_simple,        # jeu de données simulé précédemment
-  family = poisson      # distribution adaptée à un comptage
+  Ragondins ~ Temp + (1 | Transect),  # full formula
+  data   = sim_simple,               # simulated data set
+  family = poisson                   # Poisson family for counts
 )
 ```
 
-Voici les résultats :
+Results:
+
 
 ``` r
 summary(fit_lme4)
@@ -751,31 +792,24 @@ summary(fit_lme4)
 #> Temp -0.106
 ```
 
-Comment lire les sorties ?
+How to read the output?
 
-| Élément | Signification |
-|---------|---------------|
-| `(Intercept)` | Moyenne de ragondins pour un transect moyen, à Temp moyenne (échelle log). |
-| `Temp` | Effet linéaire de la température. |
-| `Random effects` | Écart‑type (`Std.Dev`) de l’intercept aléatoire. |
+| Item | Meaning |
+|------|---------|
+| `(Intercept)` | Mean log-abundance for a typical transect at mean Temp. |
+| `Temp` | Linear effect of temperature. |
+| `Random effects` | SD (`Std.Dev`) of the random intercept. |
 
-On peut noter que les estimations des paramètres obtenus sont très proches des estimations obtenues avec `brms` et `NIMBLE`. 
+You will notice that parameter estimates are very close to those obtained with `brms` and `NIMBLE`.
 
+## Summary
 
-<!-- On peut aussi visualiser l'effet de la température à la Figure \@ref(fig:viz-lme4) : -->
-<!-- ```{r viz-lme4, fig.cap="Relation entre le nombre de ragondins attendu (sur l'échelle log) et la température, avec l'intervalle de confiance en gris.", echo=TRUE} -->
-<!-- visreg::visreg(fit_lme4, xvar = 'Temp') -->
-<!-- ``` -->
++ Generalised linear models (GLMs) extend linear models to situations where a normal error assumption is not appropriate.
 
-## En résumé
++ The general idea is to use a distribution adapted to the response -- Bernoulli/binomial for binary responses (0/1), Poisson for counts (0, 1, 2, ...) -- and to link the mean of that distribution to predictors through a link function (such as logit or log).
 
-+ Les modèles linéaires généralisés (GLM) permettent d’étendre les modèles linéaires aux situations où l’on ne peut pas supposer une erreur normale.
++ Adding random effects allows us to model hierarchical grouping structures (e.g., sites, individuals, transects), capturing heterogeneity while sharing information across groups.
 
-+ L'idée générale est d’utiliser une distribution adaptée à la variable réponse — Bernoulli ou binomiale pour les variables binaires (0/1), Poisson pour les comptages (0, 1, 2, etc.) - et de relier la moyenne de cette distribution aux variables explicatives par une fonction de lien (comme logit ou log).
++ Generalised linear mixed models (GLMMs) jointly estimate fixed effects (population-level) and random effects (group-level, assumed drawn from a common distribution).
 
-+ L’introduction d’effets aléatoires permet de modéliser des groupes hiérarchiques dans les données (e.g., sites, individus, transects), en tenant compte de leur hétérogénéité tout en partageant l'information entre eux.
-
-+ Les modèles linéaires généralisés mixtes (GLMM) permettent d’estimer simultanément des effets fixes (valables pour toute la population), et des effets aléatoires (propres à chaque groupe, mais supposés tirés d’une distribution commune).
-
-+ Dans un modèle à *complete pooling*, on ignore la structure en groupes : on suppose que toutes les données suivent exactement la même relation avec les variables explicatives. Cela peut mener à des conclusions biaisées si les groupes diffèrent réellement. Dans un modèle à *no pooling*, on estime une relation distincte pour chaque groupe, sans partage d’information. Cela produit des estimations très variables, surtout si certains groupes ont des tailles d'échantillon faibles. Les modèles à *partial pooling*, ou GLMM, ou modèles hiérarchiques, représentent un compromis entre ces deux extrêmes : les groupes ont leurs propres paramètres, mais ceux-ci sont liés via une distribution commune. Cela permet d’améliorer la stabilité des estimations tout en respectant les différences entre groupes.
-
++ A *complete pooling* model ignores group structure and assumes all data follow the same relationship. This can bias conclusions if groups truly differ. A *no pooling* model fits separate relationships per group with no information sharing, leading to highly variable estimates when some groups have small sample sizes. *Partial pooling* (GLMMs / hierarchical models) is a compromise: groups have their own parameters, but these are linked by a common distribution. This improves stability while still respecting between-group differences.

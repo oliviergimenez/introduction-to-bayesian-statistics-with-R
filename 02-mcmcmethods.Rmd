@@ -13,7 +13,7 @@ y <- 19 # number of individuals that survived the winter
 n <- 57 # number of individuals monitored at the start of winter
 ```
 
-Let us apply Bayes’ theorem more directly than in Chapter \@ref(principes), where we set aside the denominator $\Pr(\text{data})$. Let us see whether we can handle it. As we saw, this denominator is given by
+Let us apply Bayes’ theorem more directly than in Chapter \@ref(principles), where we set aside the denominator $\Pr(\text{data})$. Let us see whether we can handle it. As we saw, this denominator is given by
 $\displaystyle \Pr(\text{y}) = \int{\Pr(\text{data} \mid \theta) \Pr(\theta) \, d\theta}$.
 So we will have to compute this integral. Let us start by writing an `R` function that computes the product of the (binomial) likelihood and the prior (Beta(1,1)), i.e. the numerator in Bayes’ theorem, $\Pr(\text{data} \mid \theta) \times \Pr(\theta)$:
 
@@ -48,7 +48,7 @@ posterior %>%
   theme_minimal()
 ```
 
-How good is this numerical approximation? Ideally, we would like to compare the approximation to the true posterior distribution. Conveniently, we obtained it in Chapter \@ref(principes): it is a beta distribution with parameters 20 and 39. In Figure \@ref(fig:posterior-comparaison), you can see that the two curves overlap perfectly.
+How good is this numerical approximation? Ideally, we would like to compare the approximation to the true posterior distribution. Conveniently, we obtained it in Chapter \@ref(principles): it is a beta distribution with parameters 20 and 39. In Figure \@ref(fig:posterior-comparaison), you can see that the two curves overlap perfectly.
 
 ```{r posterior-comparaison, echo = FALSE, fig.cap = "Comparison between the exact posterior (brick red) and the numerical approximation (cream).", dpi = 600}
 a <- 1; b <- 1
@@ -83,7 +83,7 @@ $$ \displaystyle \Pr(\beta_0, \beta_1, \sigma \mid \text{y}) = \frac{ \Pr(\text{
 There are two major numerical challenges:
 
 - Do we really want to compute a triple integral? No, because classical methods rarely go much beyond two dimensions.
-- We are often interested in marginal distributions of parameters (for example, that of $\beta_1$, the effect of mass on survival), obtained by integrating the joint posterior distribution over the other parameters (here, a double integral with respect to $\beta_0$ and $\sigma) — which quickly becomes intractable as the number of parameters increases.
+- We are often interested in marginal distributions of parameters (for example, that of $\beta_1$, the effect of mass on survival), obtained by integrating the joint posterior distribution over the other parameters (here, a double integral with respect to $\beta_0$ and $\sigma$) — which quickly becomes intractable as the number of parameters increases.
 
 In the next section, we introduce powerful simulation methods to overcome these limitations.
 
@@ -130,7 +130,7 @@ Now, what is a Markov chain? A Markov chain is a random sequence of numbers in w
 \end{array}
 \]
 
-Rows indicate today’s weather and columns indicate tomorrow’s. The cells give the probability of having a sunny or rainy day tomorrow depending on today’s weather (conditional probabilities; see Chapter \@ref(principes)).
+Rows indicate today’s weather and columns indicate tomorrow’s. The cells give the probability of having a sunny or rainy day tomorrow depending on today’s weather (conditional probabilities; see Chapter \@ref(principles)).
 
 Under certain conditions, a Markov chain converges to a unique stationary distribution. In our weather example, let us iterate the chain for 20 steps:
 
@@ -507,4 +507,4 @@ Another piece of advice is to think of your model first and foremost as a data g
 
 + From that point on, we run the chains long enough and then compute Monte Carlo estimates of numerical summaries (for example, posterior means or credible intervals) of the parameters.
 
-+ Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter \@ref(logiciels) we will see how to make this easier.
++ Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter \@ref(software) we will see how to make this easier.

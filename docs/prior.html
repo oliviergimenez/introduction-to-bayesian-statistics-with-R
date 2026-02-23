@@ -62,8 +62,8 @@
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="Using NIMBLE and brms">Introduction to Bayesian Statistics with R</a>:
-        <small class="text-muted">Using NIMBLE and brms</small>
+        <a href="index.html" title="using NIMBLE and brms">Introduction to Bayesian Statistics with R</a>:
+        <small class="text-muted">using NIMBLE and brms</small>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -76,12 +76,12 @@
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
         <ul class="book-toc list-unstyled">
 <li><a class="" href="index.html">Introduction</a></li>
-<li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="principles.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
 <li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
-<li><a class="" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="" href="software.html"><span class="header-section-number">3</span> Practical implementation</a></li>
 <li><a class="active" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
-<li><a class="" href="lms.html"><span class="header-section-number">5</span> La régression</a></li>
-<li><a class="" href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></li>
+<li><a class="" href="lms.html"><span class="header-section-number">5</span> Regression</a></li>
+<li><a class="" href="glms.html"><span class="header-section-number">6</span> Generalized linear models, and generalized linear mixed models</a></li>
 <li><a class="" href="conclusions.html">Conclusions</a></li>
 <li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
 </ul>
@@ -132,7 +132,7 @@ Figure 4.1: Combined effect of the prior and sample size on the posterior distri
 </p>
 </div>
 <p>With little data (top row), the effect of the prior is visible: the posterior distribution of survival remains close to the prior, especially with the <span class="math inline">\(\text{Beta}(20,1)\)</span> which pulls the estimate toward high values. With more data (bottom row), the posterior distribution is dominated by the likelihood: it concentrates around the observed proportion, except for the prior <span class="math inline">\(\text{Beta}(20,1)\)</span> for which the posterior distribution is centered on 0.5. We thus observe a fundamental principle of Bayesian inference: the more numerous and informative the data are, the less the prior influences the results.</p>
-<p>We can formalize the observations made in Figure <a href="prior.html#fig:priors-comparaison">4.1</a>. Recall that when the likelihood is <span class="math inline">\(\text{Bin}(n,\theta)\)</span> with <span class="math inline">\(y\)</span> successes, and the prior is a <span class="math inline">\(\text{Beta}(a,b)\)</span> distribution, the posterior distribution is also beta (conjugacy), and more precisely <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span>. Now, the mean of a <span class="math inline">\(\text{Beta}(a,b)\)</span> is <span class="math inline">\(\displaystyle \frac{a}{a+b}\)</span>, and therefore the mean of the posterior distribution <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span> is <span class="math inline">\(\displaystyle \frac{a+y}{a+b+n}\)</span>, which can be rewritten as a weighted average between the mean of the prior distribution <span class="math inline">\(\mu_{prior} = \displaystyle \frac{a}{a+b}\)</span> and the observed proportion <span class="math inline">\(y/n\)</span>, which is none other than the maximum likelihood estimator <span class="math inline">\(\hat{\theta}\)</span>, with weight <span class="math inline">\(w = \displaystyle \frac{n}{a+b+n}\)</span>. Note: this is a weight in the statistical sense of the term, a weighting factor, not in the sense of “kilograms of coypu”. In other words, the mean of the posterior distribution is <span class="math inline">\((1-w)\mu_{prior} + w \hat{\theta}\)</span>. Thus, when the sample size <span class="math inline">\(n\)</span> is large, <span class="math inline">\(w\)</span> tends to 1, and the posterior mean approaches the maximum likelihood estimator. Conversely, for a small sample or a very informative prior (the sum <span class="math inline">\(a+b\)</span> is large; see Figure <a href="principes.html#fig:beta-exemples">1.4</a>), <span class="math inline">\(w\)</span> is small, and the prior pulls the estimate. In short, when data are limited, we rely more on the prior; when they are rich, we let the likelihood speak.</p>
+<p>We can formalize the observations made in Figure <a href="prior.html#fig:priors-comparaison">4.1</a>. Recall that when the likelihood is <span class="math inline">\(\text{Bin}(n,\theta)\)</span> with <span class="math inline">\(y\)</span> successes, and the prior is a <span class="math inline">\(\text{Beta}(a,b)\)</span> distribution, the posterior distribution is also beta (conjugacy), and more precisely <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span>. Now, the mean of a <span class="math inline">\(\text{Beta}(a,b)\)</span> is <span class="math inline">\(\displaystyle \frac{a}{a+b}\)</span>, and therefore the mean of the posterior distribution <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span> is <span class="math inline">\(\displaystyle \frac{a+y}{a+b+n}\)</span>, which can be rewritten as a weighted average between the mean of the prior distribution <span class="math inline">\(\mu_{prior} = \displaystyle \frac{a}{a+b}\)</span> and the observed proportion <span class="math inline">\(y/n\)</span>, which is none other than the maximum likelihood estimator <span class="math inline">\(\hat{\theta}\)</span>, with weight <span class="math inline">\(w = \displaystyle \frac{n}{a+b+n}\)</span>. Note: this is a weight in the statistical sense of the term, a weighting factor, not in the sense of “kilograms of coypu”. In other words, the mean of the posterior distribution is <span class="math inline">\((1-w)\mu_{prior} + w \hat{\theta}\)</span>. Thus, when the sample size <span class="math inline">\(n\)</span> is large, <span class="math inline">\(w\)</span> tends to 1, and the posterior mean approaches the maximum likelihood estimator. Conversely, for a small sample or a very informative prior (the sum <span class="math inline">\(a+b\)</span> is large; see Figure <a href="principles.html#fig:beta-exemples">1.4</a>), <span class="math inline">\(w\)</span> is small, and the prior pulls the estimate. In short, when data are limited, we rely more on the prior; when they are rich, we let the likelihood speak.</p>
 <p>In conclusion, it is always a good idea to carry out this kind of sensitivity analysis. By comparing results obtained with different priors (non-informative, weakly informative, informative), we can ensure that conclusions do not depend excessively on prior choices. If they do, do not panic: it simply means we have little information about the parameter in question, and we must be extra cautious and think carefully about the prior used. We will return to this later.</p>
 </div>
 <div id="informativeprior" class="section level2" number="4.4">
@@ -369,8 +369,8 @@ Figure 4.4: Comparison of two priors obtained for the probability <span class="m
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></div>
-<div class="next"><a href="lms.html"><span class="header-section-number">5</span> La régression</a></div>
+<div class="prev"><a href="software.html"><span class="header-section-number">3</span> Practical implementation</a></div>
+<div class="next"><a href="lms.html"><span class="header-section-number">5</span> Regression</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -403,11 +403,11 @@ Figure 4.4: Comparison of two priors obtained for the probability <span class="m
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-23.</p>
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong> using NIMBLE and brms" was written by Olivier Gimenez. Last updated 2026-02-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
-    <p>Ce livre a été généré avec le <a class="text-light" href="https://bookdown.org">package R bookdown</a>.</p>
+    <p>This book was built with the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
   </div>
 
 </div></div>

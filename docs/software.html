@@ -10,7 +10,7 @@
 <meta name="generator" content="bookdown 0.43 with bs4_book()">
 <meta property="og:title" content="Chapter 3 Practical implementation | Introduction to Bayesian Statistics with R">
 <meta property="og:type" content="book">
-<meta property="og:url" content="https://oliviergimenez.github.io/introduction-to-bayesian-statistics-with-R/logiciels.html">
+<meta property="og:url" content="https://oliviergimenez.github.io/introduction-to-bayesian-statistics-with-R/software.html">
 <meta property="og:description" content="3.1 Introduction In this chapter, we will explore two very practical tools for performing Bayesian statistics with minimal effort: NIMBLE and brms. NIMBLE and brms are two R packages that...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 3 Practical implementation | Introduction to Bayesian Statistics with R">
@@ -76,9 +76,9 @@
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
         <ul class="book-toc list-unstyled">
 <li><a class="" href="index.html">Introduction</a></li>
-<li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="principles.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
 <li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
-<li><a class="active" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="active" href="software.html"><span class="header-section-number">3</span> Practical implementation</a></li>
 <li><a class="" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
 <li><a class="" href="lms.html"><span class="header-section-number">5</span> Regression</a></li>
 <li><a class="" href="glms.html"><span class="header-section-number">6</span> Generalized linear models, and generalized linear mixed models</a></li>
@@ -91,9 +91,9 @@
         </div>
       </nav>
 </div>
-  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="logiciels" class="section level1" number="3">
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="software" class="section level1" number="3">
 <h1>
-<span class="header-section-number">3</span> Practical implementation<a class="anchor" aria-label="anchor" href="#logiciels"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3</span> Practical implementation<a class="anchor" aria-label="anchor" href="#software"><i class="fas fa-link"></i></a>
 </h1>
 <div id="introduction-3" class="section level2" number="3.1">
 <h2>
@@ -426,7 +426,7 @@ Figure 3.5: Histogram of the posterior distribution of life expectancy.
 <span><span class="co">#&gt;   variable   mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail</span></span>
 <span><span class="co">#&gt;   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1 Intercept 0.335  0.333 0.0617 0.0619 0.235 0.440  1.00    1732.    2305.</span></span></code></pre></div>
-<p>To visualize the posterior distribution of survival probability, we just need to use (Figure <a href="logiciels.html#fig:hist-surviebrms">3.6</a>):</p>
+<p>To visualize the posterior distribution of survival probability, we just need to use (Figure <a href="software.html#fig:hist-surviebrms">3.6</a>):</p>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws_fit</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">theta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -438,7 +438,7 @@ Figure 3.5: Histogram of the posterior distribution of life expectancy.
 Figure 3.6: Histogram of the posterior distribution of the survival probability (<span class="math inline">\(\theta\)</span>).
 </p>
 </div>
-<p>In <code>brms</code>, we can assess the convergence of the MCMC chains (Figure <a href="logiciels.html#fig:trace-surviebrms">3.7</a>):</p>
+<p>In <code>brms</code>, we can assess the convergence of the MCMC chains (Figure <a href="software.html#fig:trace-surviebrms">3.7</a>):</p>
 <div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">bayes.brms</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
@@ -459,7 +459,7 @@ Figure 3.7: Histogram of the posterior distribution and trace plot of the surviv
 <span><span class="co">#&gt;   variable   mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
 <span><span class="co">#&gt;   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1 Intercept 0.928  0.910 0.161 0.153 0.691  1.22  1.00    1732.    2305.</span></span></code></pre></div>
-<p>Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy (Figure <a href="logiciels.html#fig:hist-life">3.8</a>):</p>
+<p>Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy (Figure <a href="software.html#fig:hist-life">3.8</a>):</p>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lambda</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
@@ -529,7 +529,7 @@ Figure 3.8: Histogram of the posterior distribution of life expectancy. The x-ax
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#logiciels"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="nav-link" href="#software"><span class="header-section-number">3</span> Practical implementation</a></li>
 <li><a class="nav-link" href="#introduction-3"><span class="header-section-number">3.1</span> Introduction</a></li>
 <li><a class="nav-link" href="#nimble"><span class="header-section-number">3.2</span> NIMBLE</a></li>
 <li><a class="nav-link" href="#brms"><span class="header-section-number">3.3</span> brms</a></li>
