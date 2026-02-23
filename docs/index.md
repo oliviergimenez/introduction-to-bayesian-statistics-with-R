@@ -2,7 +2,7 @@
 title: "Introduction to Bayesian Statistics with R"
 subtitle: "Using NIMBLE and brms"
 author: "Olivier Gimenez"
-date: "2026-02-22"
+date: "2026-02-23"
 knit: "bookdown::render_book"
 site: bookdown::bookdown_site
 output:

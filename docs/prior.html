@@ -74,7 +74,17 @@
 </form>
 
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
-        <ul class="book-toc list-unstyled"><li><a class="" href="index.html"><span class="header-section-number">Chapter 4</span> Prior distributions</a></li></ul>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
+<li><a class="" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="active" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
+<li><a class="" href="lms.html"><span class="header-section-number">5</span> La régression</a></li>
+<li><a class="" href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></li>
+<li><a class="" href="conclusions.html">Conclusions</a></li>
+<li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
+</ul>
 
         <div class="book-extra">
           <p><a id="book-repo" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R">View book source <i class="fab fa-github"></i></a></p>
@@ -99,14 +109,14 @@
 <ul>
 <li><p>To incorporate existing knowledge: we often have information from previous studies, meta-analyses, or expert opinion. The prior makes it possible to formalize and include this prior knowledge, rather than ignoring it and acting as if we were starting from nothing. We will see an example in Section <a href="prior.html#informativeprior">4.4</a>.</p></li>
 <li><p>To deal with a lack of data: when data are scarce or not very informative, frequentist methods can fail to estimate certain parameters correctly (boundary estimates for a probability, or a random-effect variance estimated as zero). In these situations, a well-chosen prior can help stabilize inference by providing complementary information.</p></li>
-<li><p>To constrain complex models: in mixed models, or in the presence of parameters that are difficult to estimate, priors make it possible to bound the solution space to plausible values and avoid aberrant estimates. For example, in a mixed model (see Chapter <a href="#glms"><strong>??</strong></a>) where we estimate the variance between groups or levels of an effect, the absence of a prior can lead to unrealistic values or numerical instabilities. A weakly informative prior can help in this situation.</p></li>
+<li><p>To constrain complex models: in mixed models, or in the presence of parameters that are difficult to estimate, priors make it possible to bound the solution space to plausible values and avoid aberrant estimates. For example, in a mixed model (see Chapter <a href="glms.html#glms">6</a>) where we estimate the variance between groups or levels of an effect, the absence of a prior can lead to unrealistic values or numerical instabilities. A weakly informative prior can help in this situation.</p></li>
 <li><p>To prevent overfitting: in models with many explanatory variables, priors play a regularization role by penalizing unimportant effects. For example, in a regression that includes many covariates, a prior of the form <span class="math inline">\(N(0,1.5^2)\)</span> prevents the model from assigning overly strong effects to weakly informative variables, thereby reducing the risk of overfitting.</p></li>
 </ul>
 <p>The choice of a prior depends directly on the context and the scientific question.</p>
 <ul>
 <li><p>A non-informative prior aims to express a lack of knowledge: it is often used when one does not want to introduce strong assumptions. In practice, this translates into wide or uniform distributions. But beware: even a seemingly vague prior can be informative once transformed to the model scale, as we will see in Section <a href="prior.html#surprise">4.5</a>.</p></li>
 <li><p>An informative prior reflects credible knowledge external to the dataset being analyzed: it may come from a literature synthesis, past experience, or expert opinion. Its advantage is to reduce uncertainty on parameters, especially with little data. We will see an example in Section <a href="prior.html#informativeprior">4.4</a>.</p></li>
-<li><p>A weakly informative prior is somewhat a compromise between non-informative and informative priors. The idea is to rule out values that are clearly aberrant or incompatible with what we know about the phenomenon being studied, while still leaving enough freedom for the model to learn from the data. This type of prior is used notably in <code>brms</code>. We will see an example in Chapter <a href="#glms"><strong>??</strong></a>.</p></li>
+<li><p>A weakly informative prior is somewhat a compromise between non-informative and informative priors. The idea is to rule out values that are clearly aberrant or incompatible with what we know about the phenomenon being studied, while still leaving enough freedom for the model to learn from the data. This type of prior is used notably in <code>brms</code>. We will see an example in Chapter <a href="glms.html#glms">6</a>.</p></li>
 </ul>
 <p>In practice, a cautious strategy is to start with a weakly informative prior, such as a centered normal distribution with moderate variance, then to test more informative (or more vague) alternatives to examine the impact on posterior results. This is the idea of sensitivity analysis developed in Section <a href="prior.html#sensibilite">4.3</a>.</p>
 </div>
@@ -122,7 +132,7 @@ Figure 4.1: Combined effect of the prior and sample size on the posterior distri
 </p>
 </div>
 <p>With little data (top row), the effect of the prior is visible: the posterior distribution of survival remains close to the prior, especially with the <span class="math inline">\(\text{Beta}(20,1)\)</span> which pulls the estimate toward high values. With more data (bottom row), the posterior distribution is dominated by the likelihood: it concentrates around the observed proportion, except for the prior <span class="math inline">\(\text{Beta}(20,1)\)</span> for which the posterior distribution is centered on 0.5. We thus observe a fundamental principle of Bayesian inference: the more numerous and informative the data are, the less the prior influences the results.</p>
-<p>We can formalize the observations made in Figure <a href="prior.html#fig:priors-comparaison">4.1</a>. Recall that when the likelihood is <span class="math inline">\(\text{Bin}(n,\theta)\)</span> with <span class="math inline">\(y\)</span> successes, and the prior is a <span class="math inline">\(\text{Beta}(a,b)\)</span> distribution, the posterior distribution is also beta (conjugacy), and more precisely <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span>. Now, the mean of a <span class="math inline">\(\text{Beta}(a,b)\)</span> is <span class="math inline">\(\displaystyle \frac{a}{a+b}\)</span>, and therefore the mean of the posterior distribution <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span> is <span class="math inline">\(\displaystyle \frac{a+y}{a+b+n}\)</span>, which can be rewritten as a weighted average between the mean of the prior distribution <span class="math inline">\(\mu_{prior} = \displaystyle \frac{a}{a+b}\)</span> and the observed proportion <span class="math inline">\(y/n\)</span>, which is none other than the maximum likelihood estimator <span class="math inline">\(\hat{\theta}\)</span>, with weight <span class="math inline">\(w = \displaystyle \frac{n}{a+b+n}\)</span>. Note: this is a weight in the statistical sense of the term, a weighting factor, not in the sense of “kilograms of coypu”. In other words, the mean of the posterior distribution is <span class="math inline">\((1-w)\mu_{prior} + w \hat{\theta}\)</span>. Thus, when the sample size <span class="math inline">\(n\)</span> is large, <span class="math inline">\(w\)</span> tends to 1, and the posterior mean approaches the maximum likelihood estimator. Conversely, for a small sample or a very informative prior (the sum <span class="math inline">\(a+b\)</span> is large; see Figure <a href="#fig:beta-exemples"><strong>??</strong></a>), <span class="math inline">\(w\)</span> is small, and the prior pulls the estimate. In short, when data are limited, we rely more on the prior; when they are rich, we let the likelihood speak.</p>
+<p>We can formalize the observations made in Figure <a href="prior.html#fig:priors-comparaison">4.1</a>. Recall that when the likelihood is <span class="math inline">\(\text{Bin}(n,\theta)\)</span> with <span class="math inline">\(y\)</span> successes, and the prior is a <span class="math inline">\(\text{Beta}(a,b)\)</span> distribution, the posterior distribution is also beta (conjugacy), and more precisely <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span>. Now, the mean of a <span class="math inline">\(\text{Beta}(a,b)\)</span> is <span class="math inline">\(\displaystyle \frac{a}{a+b}\)</span>, and therefore the mean of the posterior distribution <span class="math inline">\(\text{Beta}(a+y,\;b+n-y)\)</span> is <span class="math inline">\(\displaystyle \frac{a+y}{a+b+n}\)</span>, which can be rewritten as a weighted average between the mean of the prior distribution <span class="math inline">\(\mu_{prior} = \displaystyle \frac{a}{a+b}\)</span> and the observed proportion <span class="math inline">\(y/n\)</span>, which is none other than the maximum likelihood estimator <span class="math inline">\(\hat{\theta}\)</span>, with weight <span class="math inline">\(w = \displaystyle \frac{n}{a+b+n}\)</span>. Note: this is a weight in the statistical sense of the term, a weighting factor, not in the sense of “kilograms of coypu”. In other words, the mean of the posterior distribution is <span class="math inline">\((1-w)\mu_{prior} + w \hat{\theta}\)</span>. Thus, when the sample size <span class="math inline">\(n\)</span> is large, <span class="math inline">\(w\)</span> tends to 1, and the posterior mean approaches the maximum likelihood estimator. Conversely, for a small sample or a very informative prior (the sum <span class="math inline">\(a+b\)</span> is large; see Figure <a href="principes.html#fig:beta-exemples">1.4</a>), <span class="math inline">\(w\)</span> is small, and the prior pulls the estimate. In short, when data are limited, we rely more on the prior; when they are rich, we let the likelihood speak.</p>
 <p>In conclusion, it is always a good idea to carry out this kind of sensitivity analysis. By comparing results obtained with different priors (non-informative, weakly informative, informative), we can ensure that conclusions do not depend excessively on prior choices. If they do, do not panic: it simply means we have little information about the parameter in question, and we must be extra cautious and think carefully about the prior used. We will return to this later.</p>
 </div>
 <div id="informativeprior" class="section level2" number="4.4">
@@ -136,7 +146,7 @@ Figure 4.1: Combined effect of the prior and sample size on the posterior distri
 <p>Let us go back to our running example on estimating a survival probability, but making it slightly more complex to account for a common issue when studying animal populations: imperfect detection of individuals. Indeed, depending on behavior or field conditions, an animal may very well be alive and present, but not detected at the time of sampling. To correct this bias, capture–recapture protocols are often used, which rely on individual identification of animals, via a ring, a coat pattern, a genetic profile, etc.</p>
 <p>An individual can thus be detected (1) or not (0), and we code for example 101 which means: seen the first year, missed the second, then seen again the third. In the simplest model, we assume a constant survival probability <span class="math inline">\(\theta\)</span> and a constant detection probability <span class="math inline">\(p\)</span>. The likelihood for history 101 is therefore: <span class="math inline">\(\Pr(101)=\theta\,(1-p)\,\theta\,p\)</span>. To obtain the full likelihood, we perform this calculation for each individual and assume that all share the same <span class="math inline">\(\theta\)</span> and <span class="math inline">\(p\)</span>, and that they are independent.</p>
 <p>To take a break from coypus, let us look at the White-throated Dipper (<em>Cinclus cinclus</em>), a bird studied for more than 40 years by Gilbert Marzolin, a mathematics teacher passionate about ornithology with whom I had the chance to work. We have capture–recapture data here over 7 years (1981–1987) for more than 200 birds.</p>
-<p>We will start with a non-informative prior on survival probability, say a <span class="math inline">\(\text{Beta}(1,1)\)</span>. This will be our model A. As an alternative prior, we can draw on accumulated knowledge for similar species. In passerines, for instance, there is a relationship between body mass and survival probability: on average, heavier birds live longer. This allometric relationship was quantified by <span class="citation">McCarthy (<a href="r%C3%A9f%C3%A9rences.html#ref-mccarthy2007">2007</a>)</span> via a linear regression (see Chapter <a href="#lms"><strong>??</strong></a>), based on survival and mass data for 27 European passerine species. Using this regression for passerines in the specific case of the dipper, and knowing that the dipper weighs on average 59.8 grams, we can predict its annual survival probability. The model thus provides an estimate of 0.57 with a standard error of 0.075. These values allow us to define an informative prior, in the form of a normal distribution centered at 0.57 with variance <span class="math inline">\(0.075^2\)</span>. This will be our model B.</p>
+<p>We will start with a non-informative prior on survival probability, say a <span class="math inline">\(\text{Beta}(1,1)\)</span>. This will be our model A. As an alternative prior, we can draw on accumulated knowledge for similar species. In passerines, for instance, there is a relationship between body mass and survival probability: on average, heavier birds live longer. This allometric relationship was quantified by <span class="citation">McCarthy (<a href="r%C3%A9f%C3%A9rences.html#ref-mccarthy2007">2007</a>)</span> via a linear regression (see Chapter <a href="lms.html#lms">5</a>), based on survival and mass data for 27 European passerine species. Using this regression for passerines in the specific case of the dipper, and knowing that the dipper weighs on average 59.8 grams, we can predict its annual survival probability. The model thus provides an estimate of 0.57 with a standard error of 0.075. These values allow us to define an informative prior, in the form of a normal distribution centered at 0.57 with variance <span class="math inline">\(0.075^2\)</span>. This will be our model B.</p>
 <p>We thus obtain the following results for the dipper:</p>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
@@ -214,7 +224,7 @@ Figure 4.2: Comparison of posterior estimates of dipper survival according to th
 <p>In the dipper example, we used a normal distribution as an informative prior for a parameter that happens to be a probability. However, the normal distribution can take negative values or values greater than 1, which is not desirable for a probability. In the example, the informative prior <span class="math inline">\(N(0.57, 0.075^2)\)</span> is on average between 0 and 1 with a small variance, so there is little chance that this goes wrong. You can see this by simulating values in <code>R</code> with the command <code>summary(rnorm(n = 100, mean = 0.57, sd = 0.075))</code>. Still, it is not very satisfying.</p>
 <p>The good news is that we can construct a more appropriate informative prior for a probability using the so‑called “moment-matching” method. The moment-matching method consists in choosing the parameters of a prior distribution by matching the moments (often the mean and the variance) that represent the prior information we have (before seeing the data).</p>
 <p>When the prior information is available in the form of a mean <span class="math inline">\(\mu\)</span> and a standard deviation <span class="math inline">\(\sigma\)</span>, we can transform these moments into parameters <span class="math inline">\(a,b\)</span> of a beta distribution. As a reminder, the mean and the variance of a beta distribution with parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> are <span class="math inline">\(\mu=\dfrac{a}{a+b}\)</span> and <span class="math inline">\(\sigma^2=\dfrac{ab}{(a+b)^2(a+b+1)}\)</span>. By inverting these relationships, we obtain: <span class="math inline">\(a=\displaystyle \Bigl(\frac{1-\mu}{\sigma^2}-\frac{1}{\mu}\Bigr)\mu^2\)</span> and <span class="math inline">\(b=\displaystyle a\Bigl(\frac{1}{\mu}-1\Bigr)\)</span>. In our example, we have <span class="math inline">\(\mu=0.57\)</span> and <span class="math inline">\(\sigma=0.075\)</span>, from which we can deduce <span class="math inline">\(a = 24.3\)</span> and <span class="math inline">\(b = 18.3\)</span> with a few lines of code:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># desired mean and standard deviation for the beta distribution</span></span>
 <span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fl">0.57</span> <span class="co"># mean probability</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">0.075</span> <span class="co"># standard deviation on that probability</span></span>
@@ -226,7 +236,7 @@ Figure 4.2: Comparison of posterior estimates of dipper survival according to th
 <span><span class="co">#&gt;    a    b </span></span>
 <span><span class="co">#&gt; 24.3 18.3</span></span></code></pre></div>
 <p>We can check that this beta distribution indeed has the mean and standard deviation given by the meta-analysis:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># generate 10,000 values from a Beta distribution with parameters a = 24.3 and b = 18.3</span></span>
 <span><span class="va">ech_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html">rbeta</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10000</span>, shape1 <span class="op">=</span> <span class="fl">24.3</span>, shape2 <span class="op">=</span> <span class="fl">18.3</span><span class="op">)</span></span>
 <span><span class="co"># empirical mean of the draws (should be close to 0.57)</span></span>
@@ -236,10 +246,10 @@ Figure 4.2: Comparison of posterior estimates of dipper survival according to th
 <span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">ech_prior</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.07496597</span></span></code></pre></div>
 <p>We can therefore adopt a prior <span class="math inline">\(\text{Beta}(a=24.3,\,b=18.3)\)</span> to incorporate the mean information and its variability obtained from the allometric survival–mass relationship.</p>
-<p>The moment-matching method does not apply only to probabilities. It can also be used to construct a prior for a real-valued parameter, for example the effect of coypu body mass on survival (see Chapter <a href="#lms"><strong>??</strong></a>). Suppose an expert says: “I am 80% sure that parameter <span class="math inline">\(\theta\)</span> lies between –0.15 and 0.25.” This sentence defines an 80% credible interval: <span class="math inline">\(\Pr(\theta \in [-0.15,0.25]) = 0.80\)</span>. We seek a normal prior <span class="math inline">\(\theta \sim N(\mu,\sigma^2)\)</span> that reflects exactly this information.</p>
+<p>The moment-matching method does not apply only to probabilities. It can also be used to construct a prior for a real-valued parameter, for example the effect of coypu body mass on survival (see Chapter <a href="lms.html#lms">5</a>). Suppose an expert says: “I am 80% sure that parameter <span class="math inline">\(\theta\)</span> lies between –0.15 and 0.25.” This sentence defines an 80% credible interval: <span class="math inline">\(\Pr(\theta \in [-0.15,0.25]) = 0.80\)</span>. We seek a normal prior <span class="math inline">\(\theta \sim N(\mu,\sigma^2)\)</span> that reflects exactly this information.</p>
 <p>We can start with the mean <span class="math inline">\(\mu\)</span>. The interval is symmetric, so we can directly deduce that the mean <span class="math inline">\(\mu\)</span> of the prior is the midpoint of the interval: <span class="math inline">\(\displaystyle{\mu = \frac{-0.15+0.25}{2}}=0.05\)</span>.</p>
 <p>Now let us move to the standard deviation <span class="math inline">\(\sigma\)</span>. The expert states that 80% of the values of <span class="math inline">\(\theta\)</span> are between –0.15 and 0.25. For a normal distribution, this proportion can be written as <span class="math inline">\(\Pr(\mu - z\,\sigma \leq \theta \leq \mu + z \, \sigma) = 0.80\)</span>. This means that 80% of the mass of the distribution is contained in an interval centered on <span class="math inline">\(\mu\)</span> and of width <span class="math inline">\(2z\sigma\)</span>. For a level of 80%, the value of <span class="math inline">\(z\)</span> is about 1.2816 (obtained via <code>qnorm(0.90)</code>, where 0.90 is the upper quantile <span class="math inline">\(1−\alpha/2 = 1-20/2\)</span> with <span class="math inline">\((1−\alpha)\% = 80\%\)</span> and thus <span class="math inline">\(\alpha = 0.20\)</span>). Finally, we obtain <span class="math inline">\(\sigma = \displaystyle \frac{0.25-(-0.15)}{2 \times 1.2816} \approx 0.156\)</span>. Here is the calculation in <code>R</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># lower and upper bounds given by the expert</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.15</span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span>  <span class="fl">0.25</span></span>
@@ -262,7 +272,7 @@ Figure 4.2: Comparison of posterior estimates of dipper survival according to th
 <span><span class="va">sigma</span></span>
 <span><span class="co">#&gt; [1] 0.1560608</span></span></code></pre></div>
 <p>We conclude that the desired informative prior is <span class="math inline">\(N(\mu=0.05,\sigma=0.156)\)</span>. We can check that everything went well:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mu</span>    <span class="op">&lt;-</span> <span class="fl">0.05</span></span>
 <span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">0.1560608</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.15</span>, <span class="fl">0.25</span><span class="op">)</span>, mean <span class="op">=</span> <span class="va">mu</span>, sd <span class="op">=</span> <span class="va">sigma</span><span class="op">)</span></span>
@@ -281,7 +291,7 @@ Figure 4.3: Normal distribution with mean 0.05 and standard deviation 0.156. The
 <h2>
 <span class="header-section-number">4.5</span> Beware of so-called non-informative priors<a class="anchor" aria-label="anchor" href="#surprise"><i class="fas fa-link"></i></a>
 </h2>
-<p>In Bayesian statistics, we often use non-informative priors. But be careful: appearances can be misleading, especially when working with parameters defined on transformed scales, such as the logit or the log in generalized linear models (Chapter <a href="#glms"><strong>??</strong></a>). Let us take a common example where we model a probability <span class="math inline">\(\theta\)</span> on the logit scale via a parameter <span class="math inline">\(\beta\)</span> such that <span class="math inline">\(\text{logit}(\theta) = \beta\)</span>.</p>
+<p>In Bayesian statistics, we often use non-informative priors. But be careful: appearances can be misleading, especially when working with parameters defined on transformed scales, such as the logit or the log in generalized linear models (Chapter <a href="glms.html#glms">6</a>). Let us take a common example where we model a probability <span class="math inline">\(\theta\)</span> on the logit scale via a parameter <span class="math inline">\(\beta\)</span> such that <span class="math inline">\(\text{logit}(\theta) = \beta\)</span>.</p>
 <p>In practice, we can use simulations to check that priors do not bring unpleasant surprises after transformation; this is what we call prior predictive checks. This happens even before fitting a model, and to do so we will:</p>
 <ol style="list-style-type: decimal">
 <li>simulate values from the prior of <span class="math inline">\(\beta\)</span> on the logit scale;</li>
@@ -289,12 +299,12 @@ Figure 4.3: Normal distribution with mean 0.05 and standard deviation 0.156. The
 <li>inspect the induced prior distribution on <span class="math inline">\(\theta\)</span> and judge whether it seems realistic.</li>
 </ol>
 <p>A first choice is to take as a prior a normal distribution with a large variance, for example <span class="math inline">\(\beta \sim N(0, 10^2)\)</span>. Steps 1 and 2 are obtained via:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logit_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co"># simulation</span></span>
 <span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">logit_prior</span><span class="op">)</span> <span class="co"># transformation</span></span></code></pre></div>
 <p>The problem is that after transformation with the inverse logit function, most simulated values—and thus the probability <span class="math inline">\(\theta\)</span>—are close to 0 or 1 as we see in Figure <a href="prior.html#fig:prior-combined-ggplot">4.4</a> (left panel), which implicitly favors extreme values. We go from a non-informative prior on the logit scale to a very informative prior (without meaning to) on the natural scale of the probability.</p>
 <p>Another choice is to take <span class="math inline">\(\beta \sim N(0, 1.5^2)\)</span>. The first two steps of the simulation can be summarized as:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logit_prior2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="va">prior2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">logit_prior2</span><span class="op">)</span></span></code></pre></div>
 <p>Here the induced distribution on <span class="math inline">\(\theta\)</span> is uniform, covering mainly the range of values between 0.05 and 0.95 as we can see in Figure <a href="prior.html#fig:prior-combined-ggplot">4.4</a> (right panel), which better reflects a lack of information about <span class="math inline">\(\theta\)</span>. This second choice is the right one; we speak of weakly informative priors.</p>
@@ -359,15 +369,29 @@ Figure 4.4: Comparison of two priors obtained for the probability <span class="m
 </div>
 </div>
   <div class="chapter-nav">
-<div class="empty"></div>
-<div class="empty"></div>
+<div class="prev"><a href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></div>
+<div class="next"><a href="lms.html"><span class="header-section-number">5</span> La régression</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <div id="book-on-this-page"></div>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#prior"><span class="header-section-number">4</span> Prior distributions</a></li>
+<li><a class="nav-link" href="#introduction-4"><span class="header-section-number">4.1</span> Introduction</a></li>
+<li><a class="nav-link" href="#roleprior"><span class="header-section-number">4.2</span> The role of the prior</a></li>
+<li><a class="nav-link" href="#sensibilite"><span class="header-section-number">4.3</span> Sensitivity to the prior</a></li>
+<li>
+<a class="nav-link" href="#informativeprior"><span class="header-section-number">4.4</span> How to incorporate prior information?</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#meta-analysis"><span class="header-section-number">4.4.1</span> Meta-analysis</a></li>
+<li><a class="nav-link" href="#moment-matching-method"><span class="header-section-number">4.4.2</span> Moment-matching method</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#surprise"><span class="header-section-number">4.5</span> Beware of so-called non-informative priors</a></li>
+<li><a class="nav-link" href="#summary-1"><span class="header-section-number">4.6</span> Summary</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          
+<li><a id="book-source" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/blob/master/04-priors.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/edit/master/04-priors.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
         </ul>
 </div>
     </nav>
@@ -379,7 +403,7 @@ Figure 4.4: Comparison of two priors obtained for the probability <span class="m
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-22.</p>
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -78,6 +78,10 @@
 <li><a class="" href="index.html">Introduction</a></li>
 <li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
 <li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
+<li><a class="" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
+<li><a class="" href="lms.html"><span class="header-section-number">5</span> La régression</a></li>
+<li><a class="" href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></li>
 <li><a class="active" href="conclusions.html">Conclusions</a></li>
 <li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
 </ul>
@@ -107,10 +111,10 @@
 </h2>
 <p>Before finishing, I would like to leave you with a few tips inspired by my own experience. These tips are not necessarily specific to Bayesian statistics, and they are worth what they are worth.</p>
 <p>First, take the time to clearly formulate your question. This may seem obvious, but this step is essential to stay on track and make the right choices, for example deciding to use only a subset of the data to answer a specific question.</p>
-<p>Next, think about your model first, and formalize it either with equations, by drawing it, or in words. What is the nature of your data, and therefore, if you are in a regression framework, which family of distributions should you use as we saw in Chapters <a href="#lms"><strong>??</strong></a> (normal) and <a href="#glms"><strong>??</strong></a> (Bernoulli/binomial and Poisson)? Do not rush to the keyboard. Make sure you understand it, for example by explaining it to colleagues.</p>
-<p>On that note, remember to run simulations. Simulating data from your model often helps you understand it better, as in Chapters <a href="#lms"><strong>??</strong></a> and <a href="#glms"><strong>??</strong></a>. It is an excellent way to test your assumptions and diagnose potential issues.</p>
+<p>Next, think about your model first, and formalize it either with equations, by drawing it, or in words. What is the nature of your data, and therefore, if you are in a regression framework, which family of distributions should you use as we saw in Chapters <a href="lms.html#lms">5</a> (normal) and <a href="glms.html#glms">6</a> (Bernoulli/binomial and Poisson)? Do not rush to the keyboard. Make sure you understand it, for example by explaining it to colleagues.</p>
+<p>On that note, remember to run simulations. Simulating data from your model often helps you understand it better, as in Chapters <a href="lms.html#lms">5</a> and <a href="glms.html#glms">6</a>. It is an excellent way to test your assumptions and diagnose potential issues.</p>
 <p>Choose the <code>R</code> environment you are comfortable with; I illustrated <code>brms</code> and <code>NIMBLE</code> (Chapter <a href="mcmc.html#mcmc">2</a>), but other solutions exist.</p>
-<p>When fitting the model, start simple. A model with all parameters constant is a good baseline. This ensures that the data are read and formatted correctly, that there are no outliers (an extra zero, a misplaced comma), and that the priors do not generate unexpected behavior (see Chapter <a href="#prior"><strong>??</strong></a>). This approach is particularly important in Bayesian statistics to ensure good performance and convergence of the MCMC algorithm (Chapter <a href="mcmc.html#mcmc">2</a>), while also giving you an idea of the time required to run the analysis. Once everything looks good, gradually add complexity, random effects for example (Chapter <a href="#glms"><strong>??</strong></a>), until you reach the model structure that seems most appropriate to answer your question. This likely implies several iterations of fitting, comparing, and validating your models (Chapters <a href="#lms"><strong>??</strong></a> and <a href="#glms"><strong>??</strong></a>).</p>
+<p>When fitting the model, start simple. A model with all parameters constant is a good baseline. This ensures that the data are read and formatted correctly, that there are no outliers (an extra zero, a misplaced comma), and that the priors do not generate unexpected behavior (see Chapter <a href="prior.html#prior">4</a>). This approach is particularly important in Bayesian statistics to ensure good performance and convergence of the MCMC algorithm (Chapter <a href="mcmc.html#mcmc">2</a>), while also giving you an idea of the time required to run the analysis. Once everything looks good, gradually add complexity, random effects for example (Chapter <a href="glms.html#glms">6</a>), until you reach the model structure that seems most appropriate to answer your question. This likely implies several iterations of fitting, comparing, and validating your models (Chapters <a href="lms.html#lms">5</a> and <a href="glms.html#glms">6</a>).</p>
 <p>For further practical guidance, I recommend reading the papers “Ten quick tips to get you started with Bayesian statistics” <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-gimenez2025">Gimenez et al. 2025</a>)</span> and “Bayesian workflow” <span class="citation">(<a href="r%C3%A9f%C3%A9rences.html#ref-gelman2020bayesian">Andrew Gelman et al. 2020</a>)</span>.</p>
 </div>
 <div id="to-conclude" class="section level2 unnumbered">
@@ -122,7 +126,7 @@
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></div>
+<div class="prev"><a href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></div>
 <div class="next"><a href="r%C3%A9f%C3%A9rences.html">Références</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
@@ -149,7 +153,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-22.</p>
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

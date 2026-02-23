@@ -29,6 +29,29 @@
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+          margin-bottom: 0em;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
 <link rel="stylesheet" href="style.css">
 </head>
 <body data-spy="scroll" data-target="#toc">
@@ -51,7 +74,17 @@
 </form>
 
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
-        <ul class="book-toc list-unstyled"><li><a class="" href="index.html"><span class="header-section-number">Chapter 3</span> Practical implementation</a></li></ul>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Introduction</a></li>
+<li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
+<li><a class="" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
+<li><a class="active" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
+<li><a class="" href="lms.html"><span class="header-section-number">5</span> La régression</a></li>
+<li><a class="" href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></li>
+<li><a class="" href="conclusions.html">Conclusions</a></li>
+<li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
+</ul>
 
         <div class="book-extra">
           <p><a id="book-repo" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R">View book source <i class="fab fa-github"></i></a></p>
@@ -84,10 +117,10 @@
 <li>Interpret the results.</li>
 </ol>
 <p>But first, don’t forget to load the package (to install <code>NIMBLE</code>, see <a href="https://r-nimble.org/download" class="uri">https://r-nimble.org/download</a>):</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-nimble.org">nimble</a></span><span class="op">)</span></span></code></pre></div>
 <p>Let’s return to our running example on coypu survival. First step: define the binomial likelihood and a uniform prior on the survival probability <span class="math inline">\(\theta\)</span> using the <code><a href="https://rdrr.io/pkg/nimble/man/nimbleCode.html">nimbleCode()</a></code> function:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/nimble/man/nimbleCode.html">nimbleCode</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="co"># likelihood</span></span>
 <span>  <span class="va">y</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">n</span><span class="op">)</span></span>
@@ -95,7 +128,7 @@
 <span>  <span class="va">theta</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html">dbeta</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="co"># or dunif(0,1)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p>We can check that the <code>model</code> object indeed contains this code:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span></span>
 <span><span class="co">#&gt; {</span></span>
 <span><span class="co">#&gt;     y ~ dbinom(theta, n)</span></span>
@@ -103,16 +136,16 @@
 <span><span class="co">#&gt; }</span></span></code></pre></div>
 <p>In the code, <code>y</code> and <code>n</code> are known, and only <span class="math inline">\(\theta\)</span> needs to be estimated. The line <code>y ~ dbinom(theta, n)</code> indicates that the number of survivors follows a binomial distribution. The prior is a beta distribution with parameters 1 and 1 (<code><a href="https://rdrr.io/r/stats/Beta.html">dbeta()</a></code>), i.e. a uniform distribution between 0 and 1 (<code><a href="https://rdrr.io/r/stats/Uniform.html">dunif()</a></code>). Standard distributions are available in <code>NIMBLE</code> (<code>dnorm</code>, <code>dpois</code>, <code>dmultinom</code>, etc.). Note that the order of the lines does not matter: <code>NIMBLE</code> uses a declarative language (you specify <em>what</em>, not <em>how</em>).</p>
 <p>In a second step, we enter the data in a list:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">57</span>, y <span class="op">=</span> <span class="fl">19</span><span class="op">)</span></span></code></pre></div>
-<p><code>NIMBLE</code> distinguishes data (known values on the left of <code>~</code>) from constants (e.g. loop indices). Declaring some values as constants can improve computational efficiency, although this is not always intuitive. Fortunately, <code>NIMBLE</code> largely handles this automatically and may suggest moving some objects to constants if it improves performance. We ignore this distinction here, but we will use it later in Chapter <a href="#glms"><strong>??</strong></a>.</p>
+<p><code>NIMBLE</code> distinguishes data (known values on the left of <code>~</code>) from constants (e.g. loop indices). Declaring some values as constants can improve computational efficiency, although this is not always intuitive. Fortunately, <code>NIMBLE</code> largely handles this automatically and may suggest moving some objects to constants if it improves performance. We ignore this distinction here, but we will use it later in Chapter <a href="glms.html#glms">6</a>.</p>
 <p>The third step is to tell <code>NIMBLE</code> which parameters you want to monitor. Here, we are interested in the survival probability <span class="math inline">\(\theta\)</span>:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"theta"</span><span class="op">)</span></span></code></pre></div>
 <p>In general, your model contains many quantities, some of which are not very informative and do not need to be monitored. Having full control over what is tracked is therefore very useful.</p>
 <p>The fourth step consists in specifying initial values for all model parameters. At a minimum, you must provide initial values for all quantities that appear only on the left side of <code>~</code> in your code and are not supplied as data.</p>
 <p>To ensure that the MCMC algorithm properly explores the posterior distribution, we run multiple chains with different initial values. You can specify initial values for each chain (here three chains) in a list, which is itself placed inside another list:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">init1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="va">init2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">init3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span></span>
@@ -132,17 +165,17 @@
 <span><span class="co">#&gt; [[3]]$theta</span></span>
 <span><span class="co">#&gt; [1] 0.9</span></span></code></pre></div>
 <p>Alternatively, you can write an <code>R</code> function that generates random initial values:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inits</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">inits</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $theta</span></span>
 <span><span class="co">#&gt; [1] 0.3109711</span></span></code></pre></div>
 <p>I prefer using functions because the code is more compact and automatically adapts to the number of chains. If you use a function to generate initial values, it is always good practice to set a random seed beforehand so that you can reproduce the results:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fl">666</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="va">seed</span><span class="op">)</span></span></code></pre></div>
 <p>Fifth and final step: you need to tell <code>NIMBLE</code> the number of chains (<code>n.chains</code>), the burn-in length (<code>n.burnin</code>), and the total number of iterations (<code>n.iter</code>):</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n.iter</span> <span class="op">&lt;-</span> <span class="fl">2000</span></span>
 <span><span class="va">n.burnin</span> <span class="op">&lt;-</span> <span class="fl">300</span></span>
 <span><span class="va">n.chains</span> <span class="op">&lt;-</span> <span class="fl">3</span></span></code></pre></div>
@@ -150,7 +183,7 @@
 <p>As a side note, to determine the length of the warm-up period (burn-in), you can run <code>NIMBLE</code> with <code>n.burnin &lt;- 0</code> for a few hundred or thousand iterations and inspect the parameter trace to decide how many iterations are needed to reach convergence.</p>
 <p><code>NIMBLE</code> also allows you to discard samples after the burn-in phase, which is called thinning. By default, <code>thinning = 1</code> (no samples are removed), meaning that all simulations are used to summarize the posterior distributions.</p>
 <p>We now have all the ingredients to run our model, i.e. to generate samples from the posterior distribution of the parameters via MCMC simulations. We use the <code><a href="https://rdrr.io/pkg/nimble/man/nimbleMCMC.html">nimbleMCMC()</a></code> function for this:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mcmc.output</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/nimble/man/nimbleMCMC.html">nimbleMCMC</a></span><span class="op">(</span>code <span class="op">=</span> <span class="va">model</span>, <span class="co"># model</span></span>
 <span>                          data <span class="op">=</span> <span class="va">dat</span>, <span class="co"># data</span></span>
 <span>                          inits <span class="op">=</span> <span class="va">inits</span>, <span class="co"># initial values</span></span>
@@ -166,7 +199,7 @@
 <span><span class="co">#&gt; |-------------------------------------------------------|</span></span></code></pre></div>
 <p><code>NIMBLE</code> performs several internal steps that we will not detail here. The <code><a href="https://rdrr.io/pkg/nimble/man/nimbleMCMC.html">nimbleMCMC()</a></code> function accepts other useful arguments. For example, <code>setSeed</code> lets you fix the random seed inside the MCMC call, ensuring you obtain exactly the same chains at each run—very useful for reproducibility and debugging. You can also request a summary of the output with <code>summary = TRUE</code>, or retrieve MCMC samples in the <code><a href="https://rdrr.io/pkg/coda/man/mcmc.html">coda::mcmc()</a></code> format with <code>samplesAsCodaMCMC = TRUE</code>. Finally, you can remove the progress bar with <code>progressBar = FALSE</code> if you find it too depressing during long simulations. See <code><a href="https://rdrr.io/pkg/nimble/man/nimbleMCMC.html">?nimbleMCMC</a></code> for details.</p>
 <p>Let’s take a look at the results, starting by examining what the <code>mcmc.output</code> object contains:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">mcmc.output</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 3</span></span>
 <span><span class="co">#&gt;  $ chain1: num [1:1700, 1] 0.407 0.201 0.451 0.273 0.254 ...</span></span>
@@ -182,7 +215,7 @@
 <span><span class="co">#&gt;   .. ..$ : NULL</span></span>
 <span><span class="co">#&gt;   .. ..$ : chr "theta"</span></span></code></pre></div>
 <p>The <code>R</code> object <code>mcmc.output</code> is a list with three elements, one for each MCMC chain. Let’s look, for example, at the first chain:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1700    1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain1</span><span class="op">)</span></span>
@@ -195,16 +228,16 @@
 <span><span class="co">#&gt; [6,] 0.4019970</span></span></code></pre></div>
 <p>Each element of the list is a matrix. The rows correspond to the 1700 samples from the posterior distribution of <span class="math inline">\(\theta\)</span> (which corresponds to <code>n.iter - n.burnin</code> iterations). The columns represent the parameters we monitor, here <code>theta</code>.</p>
 <p>From there, we can compute the posterior mean of <span class="math inline">\(\theta\)</span>:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain1</span><span class="op">[</span>,<span class="st">"theta"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.3391349</span></span></code></pre></div>
 <p>And the 95% credible interval:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain1</span><span class="op">[</span>,<span class="st">"theta"</span><span class="op">]</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">97.5</span><span class="op">)</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      2.5%     97.5% </span></span>
 <span><span class="co">#&gt; 0.2308179 0.4541410</span></span></code></pre></div>
 <p>Let us now visualize the posterior distribution of <span class="math inline">\(\theta\)</span> as a histogram:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain1</span><span class="op">[</span>,<span class="st">"theta"</span><span class="op">]</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -218,15 +251,15 @@ Figure 3.1: Histogram of the posterior distribution of the survival probability 
 </div>
 <p>There are more convenient ways to perform these Bayesian inferences. We will use the <code>R</code> package <code>MCMCvis</code> to summarize and visualize MCMC output, but you can also use <code>ggmcmc</code>, <code>bayesplot</code>, or <code>basicMCMCplots</code>.</p>
 <p>Let’s load <code>MCMCvis</code>:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/caseyyoungflesh/MCMCvis">MCMCvis</a></span><span class="op">)</span></span></code></pre></div>
 <p>To obtain the most common numerical summaries, we use <code><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCsummary.html">MCMCsummary()</a></code>:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCsummary.html">MCMCsummary</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">mcmc.output</span>, round <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       mean   sd 2.5%  50% 97.5% Rhat n.eff</span></span>
 <span><span class="co">#&gt; theta 0.34 0.06 0.22 0.34  0.46    1  4831</span></span></code></pre></div>
 <p>We can also draw a caterpillar plot with <code><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCplot.html">MCMCplot()</a></code> to visualize posterior distributions:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCplot.html">MCMCplot</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">mcmc.output</span>, params <span class="op">=</span> <span class="st">'theta'</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:caterpilla-theta"></span>
@@ -236,7 +269,7 @@ Figure 3.2: Caterpillar plot of the posterior distribution of the survival proba
 </div>
 <p>The point represents the posterior median, the thick bar the 50% credible interval, and the thin bar the 95% credible interval.</p>
 <p>We can plot the MCMC chain (trace plot) and the associated posterior density with <code><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCtrace.html">MCMCtrace()</a></code>:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCtrace.html">MCMCtrace</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">mcmc.output</span>,</span>
 <span>          pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>          ind <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -248,7 +281,7 @@ Figure 3.3: Trace plot and posterior density of the survival probability (<span 
 </p>
 </div>
 <p>These plots are used to assess chain convergence and to detect potential estimation issues (see Chapter <a href="mcmc.html#mcmc">2</a>). We can also add the diagnostics discussed earlier:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/MCMCvis/man/MCMCtrace.html">MCMCtrace</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">mcmc.output</span>,</span>
 <span>          pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>          ind <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -263,26 +296,26 @@ Figure 3.4: Trace plot and posterior density of the survival probability (<span 
 </div>
 <p>A major advantage of MCMC methods is that they provide the posterior distribution of any function of the parameters by applying that function to draws from the posterior distributions of those parameters. For example, suppose we want to compute the life expectancy of coypus, given by <span class="math inline">\(\lambda = -1/\log(\theta)\)</span>.</p>
 <p>In our example, we simply combine the <code>theta</code> samples from the three chains:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">theta_samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain1</span><span class="op">[</span>,<span class="st">"theta"</span><span class="op">]</span>,</span>
 <span>                   <span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain2</span><span class="op">[</span>,<span class="st">"theta"</span><span class="op">]</span>,</span>
 <span>                   <span class="va">mcmc.output</span><span class="op">$</span><span class="va">chain3</span><span class="op">[</span>,<span class="st">"theta"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p>Then compute the corresponding life expectancy:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lambda</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">1</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">theta_samples</span><span class="op">)</span></span></code></pre></div>
 <p>We thus obtain 5100 simulated values from the posterior distribution of <span class="math inline">\(\lambda\)</span>, whose first values are:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lambda</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1.1125791 0.6224394 1.2569220 0.7692513 0.7296935 1.0973206</span></span></code></pre></div>
 <p>We can then extract the usual summaries:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">lambda</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9372371</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">lambda</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">97.5</span><span class="op">)</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      2.5%     97.5% </span></span>
 <span><span class="co">#&gt; 0.6691676 1.2999116</span></span></code></pre></div>
 <p>Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lambda</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -296,7 +329,7 @@ Figure 3.5: Histogram of the posterior distribution of life expectancy.
 </div>
 <p>We could also compute life expectancy by inserting it directly into the NIMBLE model with a line <code>lambda &lt;- -1/log(theta)</code> and adding <code>lambda</code> to the monitored outputs. The approach presented here is particularly useful with large models and/or large datasets, because it reduces memory usage.</p>
 <p>Now you can get started. For convenience, the steps above are summarized below. The workflow provided by <code><a href="https://rdrr.io/pkg/nimble/man/nimbleMCMC.html">nimbleMCMC()</a></code> allows you to build models and perform Bayesian inference:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/nimble/man/nimbleCode.html">nimbleCode</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="va">y</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">n</span><span class="op">)</span></span>
 <span>  <span class="va">theta</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html">dbeta</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
@@ -324,15 +357,15 @@ Figure 3.5: Histogram of the posterior distribution of life expectancy.
 <h2>
 <span class="header-section-number">3.3</span> <code>brms</code><a class="anchor" aria-label="anchor" href="#brms"><i class="fas fa-link"></i></a>
 </h2>
-<p><code>brms</code> stands for <strong>B</strong>ayesian <strong>R</strong>egression <strong>M</strong>odels using <strong>S</strong>tan. This package makes it possible to formulate and estimate regression models (see the next section and Chapters <a href="#lms"><strong>??</strong></a> and <a href="#glms"><strong>??</strong></a>) in an intuitive way thanks to a syntax close to that of the <code>lme4</code> package (the <code>R</code> reference for mixed models), while relying on <code>Stan</code>, a reference software in Bayesian statistics. The package is under constant development; see <a href="https://paul-buerkner.github.io/brms/" class="uri">https://paul-buerkner.github.io/brms/</a>. You can get help via <a href="https://discourse.mc-stan.org/" class="uri">https://discourse.mc-stan.org/</a>.</p>
+<p><code>brms</code> stands for <strong>B</strong>ayesian <strong>R</strong>egression <strong>M</strong>odels using <strong>S</strong>tan. This package makes it possible to formulate and estimate regression models (see the next section and Chapters <a href="lms.html#lms">5</a> and <a href="glms.html#glms">6</a>) in an intuitive way thanks to a syntax close to that of the <code>lme4</code> package (the <code>R</code> reference for mixed models), while relying on <code>Stan</code>, a reference software in Bayesian statistics. The package is under constant development; see <a href="https://paul-buerkner.github.io/brms/" class="uri">https://paul-buerkner.github.io/brms/</a>. You can get help via <a href="https://discourse.mc-stan.org/" class="uri">https://discourse.mc-stan.org/</a>.</p>
 <p>To use <code>brms</code>, we start by preparing the data:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fl">19</span>, n <span class="op">=</span> <span class="fl">57</span><span class="op">)</span></span></code></pre></div>
 <p>Without forgetting to load <code>brms</code>:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms">brms</a></span><span class="op">)</span></span></code></pre></div>
 <p>The likelihood is binomial in our running example. In <code>brms</code>, we can express this simply:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bayes.brms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html">brm</a></span><span class="op">(</span></span>
 <span>  <span class="va">y</span> <span class="op">|</span> <span class="fu">trials</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, <span class="co"># the number of successes is a function of an intercept</span></span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">binomial</a></span><span class="op">(</span><span class="st">"logit"</span><span class="op">)</span>, <span class="co"># binomial family with logit link function</span></span>
@@ -342,9 +375,9 @@ Figure 3.5: Histogram of the posterior distribution of life expectancy.
 <span>  warmup <span class="op">=</span> <span class="fl">300</span>, <span class="co"># number of burn-in iterations</span></span>
 <span>  thin <span class="op">=</span> <span class="fl">1</span> <span class="co"># no thinning (each iteration is kept)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The syntax is relatively simple but requires a few explanations. The argument <code>y | trials(n) ~ 1</code> makes it possible to specify a model in which we have <span class="math inline">\(y\)</span> successes among <span class="math inline">\(n\)</span> trials, and we estimate only an intercept, the <code>1</code> after <code>~</code>. Why an intercept here? Why not directly the survival <span class="math inline">\(\theta\)</span>? Because we use <code>family = binomial("logit")</code> on the next line to specify to <code>brms</code> that the response variable follows a binomial distribution. In other words, we have a generalized linear model (see Chapter <a href="#glms"><strong>??</strong></a>) with <span class="math inline">\(\text{logit}(\theta) = \beta\)</span> and we estimate <span class="math inline">\(\beta\)</span>, the intercept. The arguments <code>iter = 2000</code>, <code>warmup = 300</code>, and <code>chains = 3</code> tell <code>brms</code> to use 300 iterations for adaptation (burn-in), and the following 1700 for inference, with 3 chains.</p>
+<p>The syntax is relatively simple but requires a few explanations. The argument <code>y | trials(n) ~ 1</code> makes it possible to specify a model in which we have <span class="math inline">\(y\)</span> successes among <span class="math inline">\(n\)</span> trials, and we estimate only an intercept, the <code>1</code> after <code>~</code>. Why an intercept here? Why not directly the survival <span class="math inline">\(\theta\)</span>? Because we use <code>family = binomial("logit")</code> on the next line to specify to <code>brms</code> that the response variable follows a binomial distribution. In other words, we have a generalized linear model (see Chapter <a href="glms.html#glms">6</a>) with <span class="math inline">\(\text{logit}(\theta) = \beta\)</span> and we estimate <span class="math inline">\(\beta\)</span>, the intercept. The arguments <code>iter = 2000</code>, <code>warmup = 300</code>, and <code>chains = 3</code> tell <code>brms</code> to use 300 iterations for adaptation (burn-in), and the following 1700 for inference, with 3 chains.</p>
 <p>Let’s take a look at the results:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">bayes.brms</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  Family: binomial </span></span>
 <span><span class="co">#&gt;   Links: mu = logit </span></span>
@@ -372,29 +405,29 @@ Figure 3.5: Histogram of the posterior distribution of life expectancy.
 <li>
 <code>Bulk_ESS</code> is the effective sample size (<code>Tail_ESS</code> is another measure of effective sample size that we will not use here).</li>
 </ul>
-<p>The posterior mean is -0.7 far from the proportion of coypus that survived the winter (<span class="math inline">\(19/57 \approx 0.33\)</span>). As always in <code>R</code> and in the implementation of generalized linear models (see Chapter <a href="#glms"><strong>??</strong></a>), parameter estimates are given on the scale of the link function. Here, the estimated intercept is expressed on the logit scale. To convert it to a survival probability (between 0 and 1), we first extract the values generated in the posterior distribution of the intercept <span class="math inline">\(\beta\)</span> with the function <code><a href="https://mc-stan.org/posterior/reference/draws_matrix.html">brms::as_draws_matrix()</a></code>:</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<p>The posterior mean is -0.7 far from the proportion of coypus that survived the winter (<span class="math inline">\(19/57 \approx 0.33\)</span>). As always in <code>R</code> and in the implementation of generalized linear models (see Chapter <a href="glms.html#glms">6</a>), parameter estimates are given on the scale of the link function. Here, the estimated intercept is expressed on the logit scale. To convert it to a survival probability (between 0 and 1), we first extract the values generated in the posterior distribution of the intercept <span class="math inline">\(\beta\)</span> with the function <code><a href="https://mc-stan.org/posterior/reference/draws_matrix.html">brms::as_draws_matrix()</a></code>:</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_matrix.html">as_draws_matrix</a></span><span class="op">(</span><span class="va">bayes.brms</span><span class="op">)</span></span></code></pre></div>
 <p>Then we apply the inverse logistic function <code><a href="https://rdrr.io/r/stats/Logistic.html">plogis()</a></code> to each of these values to obtain a whole bunch of simulated values from the posterior distribution of survival <span class="math inline">\(\theta\)</span>:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="va">draws_fit</span><span class="op">[</span>,<span class="st">'Intercept'</span><span class="op">]</span> <span class="co"># selects the intercept column</span></span>
 <span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span>  <span class="co"># logit -&gt; [0,1] conversion</span></span></code></pre></div>
 <p>We thus obtain a direct estimate of the posterior mean of the survival probability, along with its 95% credible interval:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.3354256</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">theta</span>, probas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2.5</span>,<span class="fl">97.5</span><span class="op">)</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        0%       25%       50%       75%      100% </span></span>
 <span><span class="co">#&gt; 0.1555931 0.2932298 0.3331265 0.3770575 0.5527164</span></span></code></pre></div>
 <p>Or more directly with the function <code><a href="https://mc-stan.org/posterior/reference/draws_summary.html">posterior::summarise_draws()</a></code>:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">summarise_draws</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 1 × 10</span></span>
 <span><span class="co">#&gt;   variable   mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail</span></span>
 <span><span class="co">#&gt;   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1 Intercept 0.335  0.333 0.0617 0.0619 0.235 0.440  1.00    1732.    2305.</span></span></code></pre></div>
 <p>To visualize the posterior distribution of survival probability, we just need to use (Figure <a href="logiciels.html#fig:hist-surviebrms">3.6</a>):</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws_fit</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">theta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_histogram</span><span class="op">(</span>color <span class="op">=</span> <span class="st">"white"</span>, fill <span class="op">=</span> <span class="st">"steelblue"</span>, bins <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">+</span></span>
@@ -406,7 +439,7 @@ Figure 3.6: Histogram of the posterior distribution of the survival probability 
 </p>
 </div>
 <p>In <code>brms</code>, we can assess the convergence of the MCMC chains (Figure <a href="logiciels.html#fig:trace-surviebrms">3.7</a>):</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">bayes.brms</span><span class="op">)</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:trace-surviebrms"></span>
@@ -417,7 +450,7 @@ Figure 3.7: Histogram of the posterior distribution and trace plot of the surviv
 <p>This graph displays trace plots (right) as well as posterior densities (left).</p>
 <p>As a side note, to determine the length of the warm-up period (burn-in), it is enough to run <code>brms</code> with <code>warmup = 0</code> for a few hundred or thousand iterations and inspect the parameter trace to decide the number of iterations needed to reach convergence.</p>
 <p>A major advantage of MCMC methods is that they allow obtaining the posterior distribution of any function of the parameters by applying this function to the values drawn from the posterior distributions of these parameters. Note that here we estimate the intercept <span class="math inline">\(\beta\)</span> and we have therefore already used this idea to obtain the posterior distribution of the survival probability by applying the inverse logit function. As another example, suppose I would like to compute the life expectancy of coypus, which is given by <span class="math inline">\(\lambda = -1/\log(\theta)\)</span>:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="va">draws_fit</span><span class="op">[</span>,<span class="st">'Intercept'</span><span class="op">]</span> <span class="co"># selects the intercept column</span></span>
 <span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span>  <span class="co"># logit -&gt; [0,1] conversion</span></span>
 <span><span class="va">lambda</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="co"># transforms survival into life expectancy</span></span>
@@ -427,7 +460,7 @@ Figure 3.7: Histogram of the posterior distribution and trace plot of the surviv
 <span><span class="co">#&gt;   &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1 Intercept 0.928  0.910 0.161 0.153 0.691  1.22  1.00    1732.    2305.</span></span></code></pre></div>
 <p>Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy (Figure <a href="logiciels.html#fig:hist-life">3.8</a>):</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lambda</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -440,15 +473,15 @@ Figure 3.8: Histogram of the posterior distribution of life expectancy. The x-ax
 </p>
 </div>
 <p>There are a whole bunch of parameters that are set by default in <code>brms</code>; it is important to be aware of them. This concerns priors in particular. In <code>brms</code>, default priors are often non-informative or weakly informative, but it is always good to examine them explicitly. The following command displays a summary of the priors used in an already fitted model:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://mc-stan.org/rstantools/reference/prior_summary.html">prior_summary</a></span><span class="op">(</span><span class="va">bayes.brms</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Intercept ~ student_t(3, 0, 2.5)</span></span></code></pre></div>
 <p>The <code>brms</code> package uses as a weakly informative prior a Student distribution with 3 degrees of freedom, centered at 0, with a standard deviation of 2.5. The 3 degrees of freedom give a distribution with heavier tails than a normal, which provides some robustness to extreme values. The center at 0 reflects an absence of strong prior on the value of the intercept. The width 2.5 allows reasonably wide variation of the intercept without being completely non-informative.</p>
 <p>In some cases, it is relevant to define your own prior, for example to reflect knowledge from the literature or to further constrain estimation (informative prior). Here, we propose a normal prior centered at 0 with a standard deviation of 1.5 on the intercept; we will come back to this in Chapter <a href="prior.html#prior">4</a>:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nlprior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span></span></code></pre></div>
 <p>We can then use it in the model specification:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bayes.brms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html">brm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">|</span> <span class="fu">trials</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>                  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">binomial</a></span><span class="op">(</span><span class="st">"logit"</span><span class="op">)</span>,</span>
 <span>                  data <span class="op">=</span> <span class="va">dat</span>,</span>
@@ -458,7 +491,7 @@ Figure 3.8: Histogram of the posterior distribution of life expectancy. The x-ax
 <span>                  warmup <span class="op">=</span> <span class="fl">300</span>,</span>
 <span>                  thin <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>You can check that the results are close to those obtained with the default prior:</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">bayes.brms</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  Family: binomial </span></span>
 <span><span class="co">#&gt;   Links: mu = logit </span></span>
@@ -484,22 +517,29 @@ Figure 3.8: Histogram of the posterior distribution of life expectancy. The x-ax
 <li><p>Its syntax is based on <code>R</code>, which makes it easier to get started if you know the language.</p></li>
 <li><p>It offers full control over the model and the algorithms, but assumes you are comfortable with programming.</p></li>
 <li><p>Conversely, <code>brms</code> makes it possible to take advantage of MCMC methods without having to write the model yourself (the likelihood in particular).</p></li>
-<li><p>Its syntax is simple and close to that of <code>lme4</code>, which makes it particularly suitable for generalized linear models (mixed or not; see Chapter <a href="#glms"><strong>??</strong></a>).</p></li>
+<li><p>Its syntax is simple and close to that of <code>lme4</code>, which makes it particularly suitable for generalized linear models (mixed or not; see Chapter <a href="glms.html#glms">6</a>).</p></li>
 <li><p>In return, <code>brms</code> relies on pre-programmed components (model families, etc.), and it is important to pay attention to default choices, especially regarding prior distributions.</p></li>
 <li><p>This chapter thus offers a first concrete approach to implementing Bayesian models, before moving on to richer models, such as mixed models.</p></li>
 </ul>
 </div>
 </div>
   <div class="chapter-nav">
-<div class="empty"></div>
-<div class="empty"></div>
+<div class="prev"><a href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></div>
+<div class="next"><a href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <div id="book-on-this-page"></div>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#logiciels"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="nav-link" href="#introduction-3"><span class="header-section-number">3.1</span> Introduction</a></li>
+<li><a class="nav-link" href="#nimble"><span class="header-section-number">3.2</span> NIMBLE</a></li>
+<li><a class="nav-link" href="#brms"><span class="header-section-number">3.3</span> brms</a></li>
+<li><a class="nav-link" href="#summary"><span class="header-section-number">3.4</span> Summary</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          
+<li><a id="book-source" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/blob/master/03-implementation.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R/edit/master/03-implementation.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
         </ul>
 </div>
     </nav>
@@ -511,7 +551,7 @@ Figure 3.8: Histogram of the posterior distribution of life expectancy. The x-ax
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-22.</p>
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

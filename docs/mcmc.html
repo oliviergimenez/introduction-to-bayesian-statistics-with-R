@@ -78,6 +78,10 @@
 <li><a class="" href="index.html">Introduction</a></li>
 <li><a class="" href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></li>
 <li><a class="active" href="mcmc.html"><span class="header-section-number">2</span> MCMC methods</a></li>
+<li><a class="" href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></li>
+<li><a class="" href="prior.html"><span class="header-section-number">4</span> Prior distributions</a></li>
+<li><a class="" href="lms.html"><span class="header-section-number">5</span> La régression</a></li>
+<li><a class="" href="glms.html"><span class="header-section-number">6</span> Modèles linéaires généralisés, et généralisés mixtes</a></li>
 <li><a class="" href="conclusions.html">Conclusions</a></li>
 <li><a class="" href="r%C3%A9f%C3%A9rences.html">Références</a></li>
 </ul>
@@ -146,7 +150,7 @@ Figure 2.2: Comparison between the exact posterior (brick red) and the numerical
 </div>
 <p>The exact posterior distribution (brick red) and the numerical approximation (cream) for winter survival are indistinguishable, suggesting that the numerical approximation is more than satisfactory.</p>
 <p>In our example, we have a single parameter to estimate: winter survival. This means the denominator involves a one-dimensional integral, which is fairly easy to handle with quadrature techniques and <code>R</code>’s <code><a href="https://rdrr.io/r/stats/integrate.html">integrate()</a></code> function.</p>
-<p>But what happens if we have several parameters? For example, imagine that you want to fit a regression model in which survival depends on an explanatory variable, say coypu body mass. The effect of this variable is captured by regression parameters <span class="math inline">\(\beta_0\)</span> (intercept) and <span class="math inline">\(\beta_1\)</span> (slope), and we also have the residual error with standard deviation <span class="math inline">\(\sigma\)</span> (see Chapter <a href="#lms"><strong>??</strong></a>). Bayes’ theorem then gives the joint posterior distribution of these parameters (i.e. the three parameters together):</p>
+<p>But what happens if we have several parameters? For example, imagine that you want to fit a regression model in which survival depends on an explanatory variable, say coypu body mass. The effect of this variable is captured by regression parameters <span class="math inline">\(\beta_0\)</span> (intercept) and <span class="math inline">\(\beta_1\)</span> (slope), and we also have the residual error with standard deviation <span class="math inline">\(\sigma\)</span> (see Chapter <a href="lms.html#lms">5</a>). Bayes’ theorem then gives the joint posterior distribution of these parameters (i.e. the three parameters together):</p>
 <p><span class="math display">\[ \displaystyle \Pr(\beta_0, \beta_1, \sigma \mid \text{y}) = \frac{ \Pr(\text{y} \mid \beta_0, \beta_1, \sigma) \times \Pr(\beta_0, \beta_1, \sigma)}{\displaystyle \iiint \Pr(\text{y} \mid \beta_0, \beta_1, \sigma) \Pr(\beta_0, \beta_1, \sigma) \, d\beta_0 \, d\beta_1 \, d\sigma} \]</span></p>
 <p>There are two major numerical challenges:</p>
 <ul>
@@ -257,7 +261,7 @@ To compute numerator and denominator, we simply apply Bayes’ theorem, and this
 <span>  <span class="va">candidate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="va">logit_candidate</span><span class="op">)</span> <span class="co"># inverse transform (logit^-1): returns a value between 0 and 1</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">candidate</span><span class="op">)</span> <span class="co"># return proposed value</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>This function introduces a random proposal around the current value. We work on the logit scale to ensure that the final proposal (candidate) always remains in the interval (0,1) (see also Chapter <a href="#glms"><strong>??</strong></a>). The <code>away</code> parameter controls the spread of proposals: the larger it is, the larger the jumps; the smaller it is, the closer proposals remain to the current value.</p>
+<p>This function introduces a random proposal around the current value. We work on the logit scale to ensure that the final proposal (candidate) always remains in the interval (0,1) (see also Chapter <a href="glms.html#glms">6</a>). The <code>away</code> parameter controls the spread of proposals: the larger it is, the larger the jumps; the smaller it is, the closer proposals remain to the current value.</p>
 <p>We then implement steps 2 to 4 of the algorithm in a loop (this is step 5: repeating iterations):</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">t</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">steps</span><span class="op">)</span><span class="op">{</span> <span class="co"># for each iteration, starting at the 2nd</span></span>
@@ -425,9 +429,9 @@ Figure 2.9: Autocorrelation functions (ACF) for different proposal standard devi
 <span class="header-section-number">2.4.3</span> What if you have convergence problems?<a class="anchor" aria-label="anchor" href="#what-if-you-have-convergence-problems"><i class="fas fa-link"></i></a>
 </h3>
 <p>When diagnosing the convergence of an MCMC chain, you will (very) often encounter difficulties. This section offers a few practical tips that I hope will be useful.</p>
-<p>When mixing is poor and the effective sample size is low, it may be enough to increase the burn-in period and/or increase the number of simulations. Using more informative priors can also facilitate the convergence of Markov chains by helping the MCMC algorithm explore the parameter space more efficiently (Chapter <a href="#prior"><strong>??</strong></a>). In the same spirit, choosing better initial values to start the chain can also help. A useful strategy is to use estimates from a simpler model for which your MCMC chains already converge.</p>
+<p>When mixing is poor and the effective sample size is low, it may be enough to increase the burn-in period and/or increase the number of simulations. Using more informative priors can also facilitate the convergence of Markov chains by helping the MCMC algorithm explore the parameter space more efficiently (Chapter <a href="prior.html#prior">4</a>). In the same spirit, choosing better initial values to start the chain can also help. A useful strategy is to use estimates from a simpler model for which your MCMC chains already converge.</p>
 <p>If convergence problems persist, there is often an issue with the model itself. A bug in the code? A typo? An error in the equations? As is often the case in programming, the best way to identify the problem is to reduce the model’s complexity and start again from a simpler model until you find what is wrong.</p>
-<p>Another piece of advice is to think of your model first and foremost as a data generator. Simulate data from this model using realistic parameter values, and then try to recover those parameters by fitting the model to the simulated data. This approach will help you better understand how the model works, what it does not do, and how much data are needed to obtain reliable parameter estimates. We will return to this technique in Chapters <a href="#lms"><strong>??</strong></a> and <a href="#glms"><strong>??</strong></a>.</p>
+<p>Another piece of advice is to think of your model first and foremost as a data generator. Simulate data from this model using realistic parameter values, and then try to recover those parameters by fitting the model to the simulated data. This approach will help you better understand how the model works, what it does not do, and how much data are needed to obtain reliable parameter estimates. We will return to this technique in Chapters <a href="lms.html#lms">5</a> and <a href="glms.html#glms">6</a>.</p>
 </div>
 </div>
 <div id="in-summary-1" class="section level2" number="2.5">
@@ -439,13 +443,13 @@ Figure 2.9: Autocorrelation functions (ACF) for different proposal standard devi
 <li><p>In practice, we run several Markov chains starting from dispersed initial values.</p></li>
 <li><p>We discard the first iterations (warm-up or burn-in phase) and consider that convergence is reached when all chains converge to the same regime.</p></li>
 <li><p>From that point on, we run the chains long enough and then compute Monte Carlo estimates of numerical summaries (for example, posterior means or credible intervals) of the parameters.</p></li>
-<li><p>Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter <a href="#logiciels"><strong>??</strong></a> we will see how to make this easier.</p></li>
+<li><p>Of course, we do not want to build and implement MCMC methods by hand for every new analysis, and in Chapter <a href="logiciels.html#logiciels">3</a> we will see how to make this easier.</p></li>
 </ul>
 </div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="principes.html"><span class="header-section-number">1</span> The Bayesian approach</a></div>
-<div class="next"><a href="conclusions.html">Conclusions</a></div>
+<div class="next"><a href="logiciels.html"><span class="header-section-number">3</span> Practical implementation</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -478,7 +482,7 @@ Figure 2.9: Autocorrelation functions (ACF) for different proposal standard devi
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-22.</p>
+    <p>"<strong>Introduction to Bayesian Statistics with R</strong>: Using NIMBLE and brms" a été écrit par Olivier Gimenez. Dernière mise à jour le 2026-02-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
