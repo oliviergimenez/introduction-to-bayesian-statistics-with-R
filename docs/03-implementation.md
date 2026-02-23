@@ -20,13 +20,15 @@ To use `NIMBLE`, you can follow these steps:
 
 But first, don’t forget to load the package (to install `NIMBLE`, see <https://r-nimble.org/download>):
 
-```{r}
+
+``` r
 library(nimble)
 ```
 
 Let’s return to our running example on coypu survival. First step: define the binomial likelihood and a uniform prior on the survival probability $\theta$ using the `nimbleCode()` function:
 
-```{r}
+
+``` r
 model <- nimbleCode({
   # likelihood
   y ~ dbinom(theta, n)
@@ -37,15 +39,21 @@ model <- nimbleCode({
 
 We can check that the `model` object indeed contains this code:
 
-```{r}
+
+``` r
 model
+#> {
+#>     y ~ dbinom(theta, n)
+#>     theta ~ dbeta(1, 1)
+#> }
 ```
 
 In the code, `y` and `n` are known, and only $\theta$ needs to be estimated. The line `y ~ dbinom(theta, n)` indicates that the number of survivors follows a binomial distribution. The prior is a beta distribution with parameters 1 and 1 (`dbeta()`), i.e. a uniform distribution between 0 and 1 (`dunif()`). Standard distributions are available in `NIMBLE` (`dnorm`, `dpois`, `dmultinom`, etc.). Note that the order of the lines does not matter: `NIMBLE` uses a declarative language (you specify *what*, not *how*).
 
 In a second step, we enter the data in a list:
 
-```{r}
+
+``` r
 dat <- list(n = 57, y = 19)
 ```
 
@@ -53,7 +61,8 @@ dat <- list(n = 57, y = 19)
 
 The third step is to tell `NIMBLE` which parameters you want to monitor. Here, we are interested in the survival probability $\theta$:
 
-```{r}
+
+``` r
 par <- c("theta")
 ```
 
@@ -63,31 +72,50 @@ The fourth step consists in specifying initial values for all model parameters. 
 
 To ensure that the MCMC algorithm properly explores the posterior distribution, we run multiple chains with different initial values. You can specify initial values for each chain (here three chains) in a list, which is itself placed inside another list:
 
-```{r}
+
+``` r
 init1 <- list(theta = 0.1)
 init2 <- list(theta = 0.5)
 init3 <- list(theta = 0.9)
 inits <- list(init1, init2, init3)
 inits
+#> [[1]]
+#> [[1]]$theta
+#> [1] 0.1
+#> 
+#> 
+#> [[2]]
+#> [[2]]$theta
+#> [1] 0.5
+#> 
+#> 
+#> [[3]]
+#> [[3]]$theta
+#> [1] 0.9
 ```
 
 Alternatively, you can write an `R` function that generates random initial values:
 
-```{r}
+
+``` r
 inits <- function() list(theta = runif(1,0,1))
 inits()
+#> $theta
+#> [1] 0.3109711
 ```
 
 I prefer using functions because the code is more compact and automatically adapts to the number of chains. If you use a function to generate initial values, it is always good practice to set a random seed beforehand so that you can reproduce the results:
 
-```{r eval = FALSE}
+
+``` r
 seed <- 666
 set.seed(seed)
 ```
 
 Fifth and final step: you need to tell `NIMBLE` the number of chains (`n.chains`), the burn-in length (`n.burnin`), and the total number of iterations (`n.iter`):
 
-```{r}
+
+``` r
 n.iter <- 2000
 n.burnin <- 300
 n.chains <- 3
@@ -101,7 +129,8 @@ As a side note, to determine the length of the warm-up period (burn-in), you can
 
 We now have all the ingredients to run our model, i.e. to generate samples from the posterior distribution of the parameters via MCMC simulations. We use the `nimbleMCMC()` function for this:
 
-```{r}
+
+``` r
 mcmc.output <- nimbleMCMC(code = model, # model
                           data = dat, # data
                           inits = inits, # initial values
@@ -109,40 +138,75 @@ mcmc.output <- nimbleMCMC(code = model, # model
                           niter = n.iter, # total number of iterations
                           nburnin = n.burnin, # burn-in iterations
                           nchains = n.chains) # number of chains
+#> |-------------|-------------|-------------|-------------|
+#> |-------------------------------------------------------|
+#> |-------------|-------------|-------------|-------------|
+#> |-------------------------------------------------------|
+#> |-------------|-------------|-------------|-------------|
+#> |-------------------------------------------------------|
 ```
 
 `NIMBLE` performs several internal steps that we will not detail here. The `nimbleMCMC()` function accepts other useful arguments. For example, `setSeed` lets you fix the random seed inside the MCMC call, ensuring you obtain exactly the same chains at each run—very useful for reproducibility and debugging. You can also request a summary of the output with `summary = TRUE`, or retrieve MCMC samples in the `coda::mcmc()` format with `samplesAsCodaMCMC = TRUE`. Finally, you can remove the progress bar with `progressBar = FALSE` if you find it too depressing during long simulations. See `?nimbleMCMC` for details.
 
 Let’s take a look at the results, starting by examining what the `mcmc.output` object contains:
 
-```{r}
+
+``` r
 str(mcmc.output)
+#> List of 3
+#>  $ chain1: num [1:1700, 1] 0.407 0.201 0.451 0.273 0.254 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>   .. ..$ : NULL
+#>   .. ..$ : chr "theta"
+#>  $ chain2: num [1:1700, 1] 0.507 0.382 0.256 0.365 0.177 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>   .. ..$ : NULL
+#>   .. ..$ : chr "theta"
+#>  $ chain3: num [1:1700, 1] 0.317 0.244 0.317 0.362 0.357 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>   .. ..$ : NULL
+#>   .. ..$ : chr "theta"
 ```
 
 The `R` object `mcmc.output` is a list with three elements, one for each MCMC chain. Let’s look, for example, at the first chain:
 
-```{r}
+
+``` r
 dim(mcmc.output$chain1)
+#> [1] 1700    1
 head(mcmc.output$chain1)
+#>          theta
+#> [1,] 0.4070527
+#> [2,] 0.2005720
+#> [3,] 0.4513129
+#> [4,] 0.2725412
+#> [5,] 0.2539956
+#> [6,] 0.4019970
 ```
 
-Each element of the list is a matrix. The rows correspond to the `r dim(mcmc.output$chain1)[1]` samples from the posterior distribution of $\theta$ (which corresponds to `n.iter - n.burnin` iterations). The columns represent the parameters we monitor, here `theta`.
+Each element of the list is a matrix. The rows correspond to the 1700 samples from the posterior distribution of $\theta$ (which corresponds to `n.iter - n.burnin` iterations). The columns represent the parameters we monitor, here `theta`.
 
 From there, we can compute the posterior mean of $\theta$:
 
-```{r}
+
+``` r
 mean(mcmc.output$chain1[,"theta"])
+#> [1] 0.3391349
 ```
 
 And the 95% credible interval:
 
-```{r}
+
+``` r
 quantile(mcmc.output$chain1[,"theta"], probs = c(2.5, 97.5)/100)
+#>      2.5%     97.5% 
+#> 0.2308179 0.4541410
 ```
 
 Let us now visualize the posterior distribution of $\theta$ as a histogram:
 
-```{r posterior-theta, fig.cap="Histogram of the posterior distribution of the survival probability (\\(\\theta\\))."}
+
+``` r
 mcmc.output$chain1[,"theta"] %>%
   as_tibble() %>%
   ggplot() +
@@ -150,40 +214,62 @@ mcmc.output$chain1[,"theta"] %>%
   labs(x = "Survival probability")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/posterior-theta-1.png" alt="Histogram of the posterior distribution of the survival probability (\(\theta\))." width="90%" />
+<p class="caption">(\#fig:posterior-theta)Histogram of the posterior distribution of the survival probability (\(\theta\)).</p>
+</div>
+
 There are more convenient ways to perform these Bayesian inferences. We will use the `R` package `MCMCvis` to summarize and visualize MCMC output, but you can also use `ggmcmc`, `bayesplot`, or `basicMCMCplots`.
 
 Let’s load `MCMCvis`:
 
-```{r}
+
+``` r
 library(MCMCvis)
 ```
 
 To obtain the most common numerical summaries, we use `MCMCsummary()`:
 
-```{r}
+
+``` r
 MCMCsummary(object = mcmc.output, round = 2)
+#>       mean   sd 2.5%  50% 97.5% Rhat n.eff
+#> theta 0.34 0.06 0.22 0.34  0.46    1  4831
 ```
 
 We can also draw a caterpillar plot with `MCMCplot()` to visualize posterior distributions:
 
-```{r caterpilla-theta, fig.cap="Caterpillar plot of the posterior distribution of the survival probability (\\(\\theta\\))."}
+
+``` r
 MCMCplot(object = mcmc.output, params = 'theta')
 ```
+
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/caterpilla-theta-1.png" alt="Caterpillar plot of the posterior distribution of the survival probability (\(\theta\))." width="90%" />
+<p class="caption">(\#fig:caterpilla-theta)Caterpillar plot of the posterior distribution of the survival probability (\(\theta\)).</p>
+</div>
 
 The point represents the posterior median, the thick bar the 50% credible interval, and the thin bar the 95% credible interval.
 
 We can plot the MCMC chain (trace plot) and the associated posterior density with `MCMCtrace()`:
 
-```{r trace-theta, fig.cap="Trace plot and posterior density of the survival probability (\\(\\theta\\))."}
+
+``` r
 MCMCtrace(object = mcmc.output,
           pdf = FALSE,
           ind = TRUE,
           params = "theta")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/trace-theta-1.png" alt="Trace plot and posterior density of the survival probability (\(\theta\))." width="90%" />
+<p class="caption">(\#fig:trace-theta)Trace plot and posterior density of the survival probability (\(\theta\)).</p>
+</div>
+
 These plots are used to assess chain convergence and to detect potential estimation issues (see Chapter \@ref(mcmc)). We can also add the diagnostics discussed earlier:
 
-```{r trace-theta2, fig.cap="Trace plot and posterior density of the survival probability (\\(\\theta\\)) with convergence diagnostics."}
+
+``` r
 MCMCtrace(object = mcmc.output,
           pdf = FALSE,
           ind = TRUE,
@@ -192,11 +278,17 @@ MCMCtrace(object = mcmc.output,
           params = "theta")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/trace-theta2-1.png" alt="Trace plot and posterior density of the survival probability (\(\theta\)) with convergence diagnostics." width="90%" />
+<p class="caption">(\#fig:trace-theta2)Trace plot and posterior density of the survival probability (\(\theta\)) with convergence diagnostics.</p>
+</div>
+
 A major advantage of MCMC methods is that they provide the posterior distribution of any function of the parameters by applying that function to draws from the posterior distributions of those parameters. For example, suppose we want to compute the life expectancy of coypus, given by $\lambda = -1/\log(\theta)$. 
 
 In our example, we simply combine the `theta` samples from the three chains:
 
-```{r}
+
+``` r
 theta_samples <- c(mcmc.output$chain1[,"theta"],
                    mcmc.output$chain2[,"theta"],
                    mcmc.output$chain3[,"theta"])
@@ -204,26 +296,34 @@ theta_samples <- c(mcmc.output$chain1[,"theta"],
 
 Then compute the corresponding life expectancy:
 
-```{r}
+
+``` r
 lambda <- -1/log(theta_samples)
 ```
 
 We thus obtain 5100 simulated values from the posterior distribution of $\lambda$, whose first values are:
 
-```{r}
+
+``` r
 head(lambda)
+#> [1] 1.1125791 0.6224394 1.2569220 0.7692513 0.7296935 1.0973206
 ```
 
 We can then extract the usual summaries:
 
-```{r}
+
+``` r
 mean(lambda)
+#> [1] 0.9372371
 quantile(lambda, probs = c(2.5, 97.5)/100)
+#>      2.5%     97.5% 
+#> 0.6691676 1.2999116
 ```
 
 Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy:
 
-```{r hist-life-nimble, fig.cap="Histogram of the posterior distribution of life expectancy."}
+
+``` r
 lambda %>%
   as_tibble() %>%
   ggplot() +
@@ -231,11 +331,17 @@ lambda %>%
   labs(x = "Life expectancy")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/hist-life-nimble-1.png" alt="Histogram of the posterior distribution of life expectancy." width="90%" />
+<p class="caption">(\#fig:hist-life-nimble)Histogram of the posterior distribution of life expectancy.</p>
+</div>
+
 We could also compute life expectancy by inserting it directly into the NIMBLE model with a line `lambda <- -1/log(theta)` and adding `lambda` to the monitored outputs. The approach presented here is particularly useful with large models and/or large datasets, because it reduces memory usage.
 
 Now you can get started. For convenience, the steps above are summarized below. The workflow provided by `nimbleMCMC()` allows you to build models and perform Bayesian inference:
 
-```{r, eval = FALSE}
+
+``` r
 model <- nimbleCode({
   y ~ dbinom(theta, n)
   theta ~ dbeta(1, 1)
@@ -266,28 +372,22 @@ In this section, we introduced the bare minimum to get started with `NIMBLE`. Bu
 `brms` stands for **B**ayesian **R**egression **M**odels using **S**tan. This package makes it possible to formulate and estimate regression models (see the next section and Chapters \@ref(lms) and \@ref(glms)) in an intuitive way thanks to a syntax close to that of the `lme4` package (the `R` reference for mixed models), while relying on `Stan`, a reference software in Bayesian statistics. The package is under constant development; see <https://paul-buerkner.github.io/brms/>. You can get help via <https://discourse.mc-stan.org/>. 
 
 To use `brms`, we start by preparing the data:
-```{r}
+
+``` r
 dat <- data.frame(y = 19, n = 57)
 ```
 
 Without forgetting to load `brms`:
-```{r}
+
+``` r
 library(brms)
 ```
 
 The likelihood is binomial in our running example. In `brms`, we can express this simply:
-```{r, message = FALSE, warning = FALSE, include = FALSE}
-bayes.brms <- brm(y | trials(n) ~ 1,
-                  family = binomial("logit"),
-                  data = dat,
-                  chains = 3,
-                  iter = 2000,
-                  warmup = 300,
-                  thin = 1,
-                  refresh = 0)
-```
 
-```{r, message = FALSE, warning = FALSE, eval = FALSE}
+
+
+``` r
 bayes.brms <- brm(
   y | trials(n) ~ 1, # the number of successes is a function of an intercept
   family = binomial("logit"), # binomial family with logit link function
@@ -302,14 +402,26 @@ bayes.brms <- brm(
 The syntax is relatively simple but requires a few explanations. The argument `y | trials(n) ~ 1` makes it possible to specify a model in which we have $y$ successes among $n$ trials, and we estimate only an intercept, the `1` after `~`. Why an intercept here? Why not directly the survival $\theta$? Because we use `family = binomial("logit")` on the next line to specify to `brms` that the response variable follows a binomial distribution. In other words, we have a generalized linear model (see Chapter \@ref(glms)) with $\text{logit}(\theta) = \beta$ and we estimate $\beta$, the intercept. The arguments `iter = 2000`, `warmup = 300`, and `chains = 3` tell `brms` to use 300 iterations for adaptation (burn-in), and the following 1700 for inference, with 3 chains. 
 
 Let’s take a look at the results: 
-```{r}
+
+``` r
 summary(bayes.brms)
+#>  Family: binomial 
+#>   Links: mu = logit 
+#> Formula: y | trials(n) ~ 1 
+#>    Data: dat (Number of observations: 1) 
+#>   Draws: 3 chains, each with iter = 2000; warmup = 300; thin = 1;
+#>          total post-warmup draws = 5100
+#> 
+#> Regression Coefficients:
+#>           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+#> Intercept    -0.70      0.28    -1.28    -0.17 1.00     1732     2305
+#> 
+#> Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+#> and Tail_ESS are effective sample size measures, and Rhat is the potential
+#> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-```{r include=FALSE}
-library(posterior)
-draws_fit <- as_draws_matrix(bayes.brms)
-```
+
 
 This command displays a summary table of posterior estimates for each parameter of the model. We find there:
 
@@ -319,55 +431,84 @@ This command displays a summary table of posterior estimates for each parameter 
 - The convergence diagnostic `Rhat`.
 - `Bulk_ESS` is the effective sample size (`Tail_ESS` is another measure of effective sample size that we will not use here). 
 
-The posterior mean is `r round(mean(draws_fit[,'Intercept']),2)` far from the proportion of coypus that survived the winter ($19/57 \approx 0.33$). As always in `R` and in the implementation of generalized linear models (see Chapter \@ref(glms)), parameter estimates are given on the scale of the link function. Here, the estimated intercept is expressed on the logit scale. To convert it to a survival probability (between 0 and 1), we first extract the values generated in the posterior distribution of the intercept $\beta$ with the function `brms::as_draws_matrix()`:
-```{r}
+The posterior mean is -0.7 far from the proportion of coypus that survived the winter ($19/57 \approx 0.33$). As always in `R` and in the implementation of generalized linear models (see Chapter \@ref(glms)), parameter estimates are given on the scale of the link function. Here, the estimated intercept is expressed on the logit scale. To convert it to a survival probability (between 0 and 1), we first extract the values generated in the posterior distribution of the intercept $\beta$ with the function `brms::as_draws_matrix()`:
+
+``` r
 draws_fit <- as_draws_matrix(bayes.brms)
 ```
 
 Then we apply the inverse logistic function `plogis()` to each of these values to obtain a whole bunch of simulated values from the posterior distribution of survival $\theta$:
-```{r}
+
+``` r
 beta <- draws_fit[,'Intercept'] # selects the intercept column
 theta <- plogis(beta)  # logit -> [0,1] conversion
 ```
 
 We thus obtain a direct estimate of the posterior mean of the survival probability, along with its 95% credible interval:
-```{r}
+
+``` r
 mean(theta)
+#> [1] 0.3354256
 quantile(theta, probas = c(2.5,97.5)/100)
+#>        0%       25%       50%       75%      100% 
+#> 0.1555931 0.2932298 0.3331265 0.3770575 0.5527164
 ```
 
 Or more directly with the function `posterior::summarise_draws()`:
-```{r}
+
+``` r
 summarise_draws(theta)
+#> # A tibble: 1 × 10
+#>   variable   mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>     <dbl>  <dbl>  <dbl>  <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 Intercept 0.335  0.333 0.0617 0.0619 0.235 0.440  1.00    1732.    2305.
 ```
 
 To visualize the posterior distribution of survival probability, we just need to use (Figure \@ref(fig:hist-surviebrms)):
-```{r hist-surviebrms, fig.cap = "Histogram of the posterior distribution of the survival probability (\\(\\theta\\)).", dpi = 600}
+
+``` r
 draws_fit %>%
   ggplot(aes(x = theta)) +
   geom_histogram(color = "white", fill = "steelblue", bins = 30) +
   labs(x = "Survival probability", y = "Frequency")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/hist-surviebrms-1.png" alt="Histogram of the posterior distribution of the survival probability (\(\theta\))." width="90%" />
+<p class="caption">(\#fig:hist-surviebrms)Histogram of the posterior distribution of the survival probability (\(\theta\)).</p>
+</div>
+
 In `brms`, we can assess the convergence of the MCMC chains (Figure \@ref(fig:trace-surviebrms)):
-```{r trace-surviebrms, fig.cap = "Histogram of the posterior distribution and trace plot of the survival probability on the logit scale (b). In the histogram, the x-axis represents the possible values of the intercept (logit scale) and the y-axis the frequency of the simulated values. In the trace plot, the x-axis corresponds to the MCMC iteration number and the y-axis to the simulated values of the intercept (logit scale).", dpi = 600}
+
+``` r
 plot(bayes.brms)
 ```
+
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/trace-surviebrms-1.png" alt="Histogram of the posterior distribution and trace plot of the survival probability on the logit scale (b). In the histogram, the x-axis represents the possible values of the intercept (logit scale) and the y-axis the frequency of the simulated values. In the trace plot, the x-axis corresponds to the MCMC iteration number and the y-axis to the simulated values of the intercept (logit scale)." width="90%" />
+<p class="caption">(\#fig:trace-surviebrms)Histogram of the posterior distribution and trace plot of the survival probability on the logit scale (b). In the histogram, the x-axis represents the possible values of the intercept (logit scale) and the y-axis the frequency of the simulated values. In the trace plot, the x-axis corresponds to the MCMC iteration number and the y-axis to the simulated values of the intercept (logit scale).</p>
+</div>
 
 This graph displays trace plots (right) as well as posterior densities (left). 
 
 As a side note, to determine the length of the warm-up period (burn-in), it is enough to run `brms` with `warmup = 0` for a few hundred or thousand iterations and inspect the parameter trace to decide the number of iterations needed to reach convergence.  
 
 A major advantage of MCMC methods is that they allow obtaining the posterior distribution of any function of the parameters by applying this function to the values drawn from the posterior distributions of these parameters. Note that here we estimate the intercept $\beta$ and we have therefore already used this idea to obtain the posterior distribution of the survival probability by applying the inverse logit function. As another example, suppose I would like to compute the life expectancy of coypus, which is given by $\lambda = -1/\log(\theta)$:
-```{r}
+
+``` r
 beta <- draws_fit[,'Intercept'] # selects the intercept column
 theta <- plogis(beta)  # logit -> [0,1] conversion
 lambda <- -1 / log(theta) # transforms survival into life expectancy
 summarize_draws(lambda) # summary of draws: mean, median, intervals
+#> # A tibble: 1 × 10
+#>   variable   mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>     <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 Intercept 0.928  0.910 0.161 0.153 0.691  1.22  1.00    1732.    2305.
 ```
 
 Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy (Figure \@ref(fig:hist-life)):
-```{r hist-life, fig.cap = "Histogram of the posterior distribution of life expectancy. The x-axis represents the different possible values of life expectancy. The vertical axis indicates the number of simulated draws (Count) for each value.", dpi = 600}
+
+``` r
 lambda %>%
   as_tibble() %>%
   ggplot() +
@@ -375,32 +516,31 @@ lambda %>%
   labs(x = "Life expectancy")
 ```
 
+<div class="figure" style="text-align: center">
+<img src="03-implementation_files/figure-html/hist-life-1.png" alt="Histogram of the posterior distribution of life expectancy. The x-axis represents the different possible values of life expectancy. The vertical axis indicates the number of simulated draws (Count) for each value." width="90%" />
+<p class="caption">(\#fig:hist-life)Histogram of the posterior distribution of life expectancy. The x-axis represents the different possible values of life expectancy. The vertical axis indicates the number of simulated draws (Count) for each value.</p>
+</div>
+
 There are a whole bunch of parameters that are set by default in `brms`; it is important to be aware of them. This concerns priors in particular. In `brms`, default priors are often non-informative or weakly informative, but it is always good to examine them explicitly. The following command displays a summary of the priors used in an already fitted model:
-```{r}
+
+``` r
 prior_summary(bayes.brms)
+#> Intercept ~ student_t(3, 0, 2.5)
 ```
 
 The `brms` package uses as a weakly informative prior a Student distribution with 3 degrees of freedom, centered at 0, with a standard deviation of 2.5. The 3 degrees of freedom give a distribution with heavier tails than a normal, which provides some robustness to extreme values. The center at 0 reflects an absence of strong prior on the value of the intercept. The width 2.5 allows reasonably wide variation of the intercept without being completely non-informative.
 
 In some cases, it is relevant to define your own prior, for example to reflect knowledge from the literature or to further constrain estimation (informative prior). Here, we propose a normal prior centered at 0 with a standard deviation of 1.5 on the intercept; we will come back to this in Chapter \@ref(prior):
-```{r}
+
+``` r
 nlprior <- prior(normal(0, 1.5), class = "Intercept")
 ```
 
 We can then use it in the model specification:
-```{r, include = FALSE}
-bayes.brms <- brm(y | trials(n) ~ 1,
-                  family = binomial("logit"),
-                  data = dat,
-                  prior = nlprior, 
-                  chains = 3,
-                  iter = 2000,
-                  warmup = 300,
-                  thin = 1,
-                  refresh = 0)
-```
 
-```{r, eval = FALSE}
+
+
+``` r
 bayes.brms <- brm(y | trials(n) ~ 1,
                   family = binomial("logit"),
                   data = dat,
@@ -412,8 +552,23 @@ bayes.brms <- brm(y | trials(n) ~ 1,
 ```
 
 You can check that the results are close to those obtained with the default prior:
-```{r}
+
+``` r
 summary(bayes.brms)
+#>  Family: binomial 
+#>   Links: mu = logit 
+#> Formula: y | trials(n) ~ 1 
+#>    Data: dat (Number of observations: 1) 
+#>   Draws: 3 chains, each with iter = 2000; warmup = 300; thin = 1;
+#>          total post-warmup draws = 5100
+#> 
+#> Regression Coefficients:
+#>           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+#> Intercept    -0.69      0.27    -1.24    -0.18 1.00     1664     2306
+#> 
+#> Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+#> and Tail_ESS are effective sample size measures, and Rhat is the potential
+#> scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
 ## Summary
