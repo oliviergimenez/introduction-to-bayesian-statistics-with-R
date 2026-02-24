@@ -10,3 +10,8 @@ bookdown::bs4_book:
       google: Roboto
   language: fr
   repo: https://github.com/oliviergimenez/introduction-to-bayesian-statistics-with-R
+
+bookdown::word_document2:
+  toc: true
+  number_sections: false
+  reference_docx: "template.docx"
