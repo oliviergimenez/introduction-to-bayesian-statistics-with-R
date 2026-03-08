@@ -1,5 +1,3 @@
 \backmatter
 
 
-# Références {-}
-

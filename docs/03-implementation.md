@@ -101,7 +101,7 @@ Alternatively, you can write an `R` function that generates random initial value
 inits <- function() list(theta = runif(1,0,1))
 inits()
 #> $theta
-#> [1] 0.3109711
+#> [1] 0.9694233
 ```
 
 I prefer using functions because the code is more compact and automatically adapts to the number of chains. If you use a function to generate initial values, it is always good practice to set a random seed beforehand so that you can reproduce the results:
@@ -154,15 +154,15 @@ Let’s take a look at the results, starting by examining what the `mcmc.output`
 ``` r
 str(mcmc.output)
 #> List of 3
-#>  $ chain1: num [1:1700, 1] 0.407 0.201 0.451 0.273 0.254 ...
+#>  $ chain1: num [1:1700, 1] 0.337 0.298 0.413 0.285 0.4 ...
 #>   ..- attr(*, "dimnames")=List of 2
 #>   .. ..$ : NULL
 #>   .. ..$ : chr "theta"
-#>  $ chain2: num [1:1700, 1] 0.507 0.382 0.256 0.365 0.177 ...
+#>  $ chain2: num [1:1700, 1] 0.212 0.314 0.364 0.3 0.503 ...
 #>   ..- attr(*, "dimnames")=List of 2
 #>   .. ..$ : NULL
 #>   .. ..$ : chr "theta"
-#>  $ chain3: num [1:1700, 1] 0.317 0.244 0.317 0.362 0.357 ...
+#>  $ chain3: num [1:1700, 1] 0.277 0.385 0.326 0.29 0.364 ...
 #>   ..- attr(*, "dimnames")=List of 2
 #>   .. ..$ : NULL
 #>   .. ..$ : chr "theta"
@@ -176,12 +176,12 @@ dim(mcmc.output$chain1)
 #> [1] 1700    1
 head(mcmc.output$chain1)
 #>          theta
-#> [1,] 0.4070527
-#> [2,] 0.2005720
-#> [3,] 0.4513129
-#> [4,] 0.2725412
-#> [5,] 0.2539956
-#> [6,] 0.4019970
+#> [1,] 0.3372697
+#> [2,] 0.2984005
+#> [3,] 0.4126544
+#> [4,] 0.2853568
+#> [5,] 0.3996465
+#> [6,] 0.3305106
 ```
 
 Each element of the list is a matrix. The rows correspond to the 1700 samples from the posterior distribution of $\theta$ (which corresponds to `n.iter - n.burnin` iterations). The columns represent the parameters we monitor, here `theta`.
@@ -191,7 +191,7 @@ From there, we can compute the posterior mean of $\theta$:
 
 ``` r
 mean(mcmc.output$chain1[,"theta"])
-#> [1] 0.3391349
+#> [1] 0.3397548
 ```
 
 And the 95% credible interval:
@@ -200,7 +200,7 @@ And the 95% credible interval:
 ``` r
 quantile(mcmc.output$chain1[,"theta"], probs = c(2.5, 97.5)/100)
 #>      2.5%     97.5% 
-#> 0.2308179 0.4541410
+#> 0.2290827 0.4599074
 ```
 
 Let us now visualize the posterior distribution of $\theta$ as a histogram:
@@ -214,10 +214,14 @@ mcmc.output$chain1[,"theta"] %>%
   labs(x = "Survival probability")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/posterior-theta-1.png" alt="Histogram of the posterior distribution of the survival probability (\(\theta\))." width="90%" />
-<p class="caption">(\#fig:posterior-theta)Histogram of the posterior distribution of the survival probability (\(\theta\)).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/posterior-theta-1} 
+
+}
+
+\caption{Histogram of the posterior distribution of the survival probability (\(\theta\)).}(\#fig:posterior-theta)
+\end{figure}
 
 There are more convenient ways to perform these Bayesian inferences. We will use the `R` package `MCMCvis` to summarize and visualize MCMC output, but you can also use `ggmcmc`, `bayesplot`, or `basicMCMCplots`.
 
@@ -234,7 +238,7 @@ To obtain the most common numerical summaries, we use `MCMCsummary()`:
 ``` r
 MCMCsummary(object = mcmc.output, round = 2)
 #>       mean   sd 2.5%  50% 97.5% Rhat n.eff
-#> theta 0.34 0.06 0.22 0.34  0.46    1  4831
+#> theta 0.34 0.06 0.23 0.34  0.46    1  4965
 ```
 
 We can also draw a caterpillar plot with `MCMCplot()` to visualize posterior distributions:
@@ -244,10 +248,14 @@ We can also draw a caterpillar plot with `MCMCplot()` to visualize posterior dis
 MCMCplot(object = mcmc.output, params = 'theta')
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/caterpilla-theta-1.png" alt="Caterpillar plot of the posterior distribution of the survival probability (\(\theta\))." width="90%" />
-<p class="caption">(\#fig:caterpilla-theta)Caterpillar plot of the posterior distribution of the survival probability (\(\theta\)).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/caterpilla-theta-1} 
+
+}
+
+\caption{Caterpillar plot of the posterior distribution of the survival probability (\(\theta\)).}(\#fig:caterpilla-theta)
+\end{figure}
 
 The point represents the posterior median, the thick bar the 50% credible interval, and the thin bar the 95% credible interval.
 
@@ -261,10 +269,14 @@ MCMCtrace(object = mcmc.output,
           params = "theta")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/trace-theta-1.png" alt="Trace plot and posterior density of the survival probability (\(\theta\))." width="90%" />
-<p class="caption">(\#fig:trace-theta)Trace plot and posterior density of the survival probability (\(\theta\)).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/trace-theta-1} 
+
+}
+
+\caption{Trace plot and posterior density of the survival probability (\(\theta\)).}(\#fig:trace-theta)
+\end{figure}
 
 These plots are used to assess chain convergence and to detect potential estimation issues (see Chapter \@ref(mcmc)). We can also add the diagnostics discussed earlier:
 
@@ -278,10 +290,14 @@ MCMCtrace(object = mcmc.output,
           params = "theta")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/trace-theta2-1.png" alt="Trace plot and posterior density of the survival probability (\(\theta\)) with convergence diagnostics." width="90%" />
-<p class="caption">(\#fig:trace-theta2)Trace plot and posterior density of the survival probability (\(\theta\)) with convergence diagnostics.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/trace-theta2-1} 
+
+}
+
+\caption{Trace plot and posterior density of the survival probability (\(\theta\)) with convergence diagnostics.}(\#fig:trace-theta2)
+\end{figure}
 
 A major advantage of MCMC methods is that they provide the posterior distribution of any function of the parameters by applying that function to draws from the posterior distributions of those parameters. For example, suppose we want to compute the life expectancy of coypus, given by $\lambda = -1/\log(\theta)$. 
 
@@ -306,7 +322,7 @@ We thus obtain 5100 simulated values from the posterior distribution of $\lambda
 
 ``` r
 head(lambda)
-#> [1] 1.1125791 0.6224394 1.2569220 0.7692513 0.7296935 1.0973206
+#> [1] 0.9200711 0.8269120 1.1297587 0.7974387 1.0903047 0.9032472
 ```
 
 We can then extract the usual summaries:
@@ -314,10 +330,10 @@ We can then extract the usual summaries:
 
 ``` r
 mean(lambda)
-#> [1] 0.9372371
+#> [1] 0.9357639
 quantile(lambda, probs = c(2.5, 97.5)/100)
 #>      2.5%     97.5% 
-#> 0.6691676 1.2999116
+#> 0.6787093 1.2984839
 ```
 
 Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy:
@@ -331,10 +347,14 @@ lambda %>%
   labs(x = "Life expectancy")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/hist-life-nimble-1.png" alt="Histogram of the posterior distribution of life expectancy." width="90%" />
-<p class="caption">(\#fig:hist-life-nimble)Histogram of the posterior distribution of life expectancy.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/hist-life-nimble-1} 
+
+}
+
+\caption{Histogram of the posterior distribution of life expectancy.}(\#fig:hist-life-nimble)
+\end{figure}
 
 We could also compute life expectancy by inserting it directly into the NIMBLE model with a line `lambda <- -1/log(theta)` and adding `lambda` to the monitored outputs. The approach presented here is particularly useful with large models and/or large datasets, because it reduces memory usage.
 
@@ -414,7 +434,7 @@ summary(bayes.brms)
 #> 
 #> Regression Coefficients:
 #>           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-#> Intercept    -0.70      0.28    -1.28    -0.17 1.00     1732     2305
+#> Intercept    -0.70      0.29    -1.27    -0.14 1.00     1759     2703
 #> 
 #> Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 #> and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -448,20 +468,20 @@ We thus obtain a direct estimate of the posterior mean of the survival probabili
 
 ``` r
 mean(theta)
-#> [1] 0.3354256
+#> [1] 0.3356992
 quantile(theta, probas = c(2.5,97.5)/100)
 #>        0%       25%       50%       75%      100% 
-#> 0.1555931 0.2932298 0.3331265 0.3770575 0.5527164
+#> 0.1227845 0.2924574 0.3331097 0.3770242 0.5650018
 ```
 
 Or more directly with the function `posterior::summarise_draws()`:
 
 ``` r
 summarise_draws(theta)
-#> # A tibble: 1 × 10
+#> # A tibble: 1 x 10
 #>   variable   mean median     sd    mad    q5   q95  rhat ess_bulk ess_tail
 #>   <chr>     <dbl>  <dbl>  <dbl>  <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 Intercept 0.335  0.333 0.0617 0.0619 0.235 0.440  1.00    1732.    2305.
+#> 1 Intercept 0.336  0.333 0.0623 0.0627 0.237 0.441  1.00    1759.    2703.
 ```
 
 To visualize the posterior distribution of survival probability, we just need to use (Figure \@ref(fig:hist-surviebrms)):
@@ -473,10 +493,14 @@ draws_fit %>%
   labs(x = "Survival probability", y = "Frequency")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/hist-surviebrms-1.png" alt="Histogram of the posterior distribution of the survival probability (\(\theta\))." width="90%" />
-<p class="caption">(\#fig:hist-surviebrms)Histogram of the posterior distribution of the survival probability (\(\theta\)).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/hist-surviebrms-1} 
+
+}
+
+\caption{Histogram of the posterior distribution of the survival probability (\(\theta\)).}(\#fig:hist-surviebrms)
+\end{figure}
 
 In `brms`, we can assess the convergence of the MCMC chains (Figure \@ref(fig:trace-surviebrms)):
 
@@ -484,10 +508,14 @@ In `brms`, we can assess the convergence of the MCMC chains (Figure \@ref(fig:tr
 plot(bayes.brms)
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/trace-surviebrms-1.png" alt="Histogram of the posterior distribution and trace plot of the survival probability on the logit scale (b). In the histogram, the x-axis represents the possible values of the intercept (logit scale) and the y-axis the frequency of the simulated values. In the trace plot, the x-axis corresponds to the MCMC iteration number and the y-axis to the simulated values of the intercept (logit scale)." width="90%" />
-<p class="caption">(\#fig:trace-surviebrms)Histogram of the posterior distribution and trace plot of the survival probability on the logit scale (b). In the histogram, the x-axis represents the possible values of the intercept (logit scale) and the y-axis the frequency of the simulated values. In the trace plot, the x-axis corresponds to the MCMC iteration number and the y-axis to the simulated values of the intercept (logit scale).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/trace-surviebrms-1} 
+
+}
+
+\caption{Histogram of the posterior distribution and trace plot of the survival probability on the logit scale (b). In the histogram, the x-axis represents the possible values of the intercept (logit scale) and the y-axis the frequency of the simulated values. In the trace plot, the x-axis corresponds to the MCMC iteration number and the y-axis to the simulated values of the intercept (logit scale).}(\#fig:trace-surviebrms)
+\end{figure}
 
 This graph displays trace plots (right) as well as posterior densities (left). 
 
@@ -500,10 +528,10 @@ beta <- draws_fit[,'Intercept'] # selects the intercept column
 theta <- plogis(beta)  # logit -> [0,1] conversion
 lambda <- -1 / log(theta) # transforms survival into life expectancy
 summarize_draws(lambda) # summary of draws: mean, median, intervals
-#> # A tibble: 1 × 10
+#> # A tibble: 1 x 10
 #>   variable   mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail
 #>   <chr>     <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 Intercept 0.928  0.910 0.161 0.153 0.691  1.22  1.00    1732.    2305.
+#> 1 Intercept 0.929  0.910 0.164 0.155 0.695  1.22  1.00    1759.    2703.
 ```
 
 Life expectancy is approximately one year. We can also visualize the posterior distribution of life expectancy (Figure \@ref(fig:hist-life)):
@@ -516,10 +544,14 @@ lambda %>%
   labs(x = "Life expectancy")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="03-implementation_files/figure-html/hist-life-1.png" alt="Histogram of the posterior distribution of life expectancy. The x-axis represents the different possible values of life expectancy. The vertical axis indicates the number of simulated draws (Count) for each value." width="90%" />
-<p class="caption">(\#fig:hist-life)Histogram of the posterior distribution of life expectancy. The x-axis represents the different possible values of life expectancy. The vertical axis indicates the number of simulated draws (Count) for each value.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{03-implementation_files/figure-latex/hist-life-1} 
+
+}
+
+\caption{Histogram of the posterior distribution of life expectancy. The x-axis represents the different possible values of life expectancy. The vertical axis indicates the number of simulated draws (Count) for each value.}(\#fig:hist-life)
+\end{figure}
 
 There are a whole bunch of parameters that are set by default in `brms`; it is important to be aware of them. This concerns priors in particular. In `brms`, default priors are often non-informative or weakly informative, but it is always good to examine them explicitly. The following command displays a summary of the priors used in an already fitted model:
 
@@ -564,7 +596,7 @@ summary(bayes.brms)
 #> 
 #> Regression Coefficients:
 #>           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-#> Intercept    -0.69      0.27    -1.24    -0.18 1.00     1664     2306
+#> Intercept    -0.68      0.29    -1.26    -0.13 1.00     1701     1693
 #> 
 #> Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 #> and Tail_ESS are effective sample size measures, and Rhat is the potential

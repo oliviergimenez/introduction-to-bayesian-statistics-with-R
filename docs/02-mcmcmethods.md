@@ -52,17 +52,25 @@ posterior %>%
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/posterior-numerique-plot-1.png" alt="Numerical approximation of the posterior distribution of winter survival." width="90%" />
-<p class="caption">(\#fig:posterior-numerique-plot)Numerical approximation of the posterior distribution of winter survival.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/posterior-numerique-plot-1} 
+
+}
+
+\caption{Numerical approximation of the posterior distribution of winter survival.}(\#fig:posterior-numerique-plot)
+\end{figure}
 
 How good is this numerical approximation? Ideally, we would like to compare the approximation to the true posterior distribution. Conveniently, we obtained it in Chapter \@ref(principles): it is a beta distribution with parameters 20 and 39. In Figure \@ref(fig:posterior-comparaison), you can see that the two curves overlap perfectly.
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/posterior-comparaison-1.png" alt="Comparison between the exact posterior (brick red) and the numerical approximation (cream)." width="90%" />
-<p class="caption">(\#fig:posterior-comparaison)Comparison between the exact posterior (brick red) and the numerical approximation (cream).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/posterior-comparaison-1} 
+
+}
+
+\caption{Comparison between the exact posterior (brick red) and the numerical approximation (cream).}(\#fig:posterior-comparaison)
+\end{figure}
 
 The exact posterior distribution (brick red) and the numerical approximation (cream) for winter survival are indistinguishable, suggesting that the numerical approximation is more than satisfactory.
 
@@ -97,7 +105,7 @@ where $X$ is $\theta$ and $f$ is the identity. This posterior mean can be estima
 sample_from_posterior <- rbeta(1000, 20, 39)
 # compute the mean by Monte Carlo integration
 mean(sample_from_posterior)
-#> [1] 0.3405089
+#> [1] 0.3407008
 ```
 
 We can verify that the resulting mean is close to the theoretical expectation of a beta distribution:
@@ -114,7 +122,7 @@ Another useful numerical summary is a credible interval within which the paramet
 ``` r
 quantile(sample_from_posterior, probs = c(2.5/100, 97.5/100))
 #>      2.5%     97.5% 
-#> 0.2270862 0.4702974
+#> 0.2264106 0.4716172
 ```
 
 By the way, there is a difference between a credible interval in Bayesian statistics and a confidence interval in frequentist statistics. A 95% confidence interval means that if we repeated the experiment a very large number of times (tag coypus with GPS and record the number of winter survivors), about 95% of the intervals constructed in this way would contain the true parameter value $\theta$. But we cannot say that the probability that the parameter lies within a given interval is 95%. A 95% credible interval, in contrast, means that there is a 95% probability that the parameter lies within that interval. The interpretation of a credible interval is a bit more intuitive than that of a confidence interval.
@@ -271,10 +279,14 @@ tail(theta.post)
 
 We can now visualize the chain’s evolution with a trace plot, i.e. a curve showing the simulated values of `theta` across iterations (Figure \@ref(fig:traceplot)):
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/traceplot-1.png" alt="Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations." width="90%" />
-<p class="caption">(\#fig:traceplot)Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/traceplot-1} 
+
+}
+
+\caption{Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations.}(\#fig:traceplot)
+\end{figure}
 
 What does this trace plot tell us? The horizontal axis represents iterations (or “time” in the Markov chain). The vertical axis shows the simulated values of the survival probability at each step. In the figure, we see that the chain sometimes stays at the same value for several consecutive iterations. This happens when the candidate value proposed by the algorithm is rejected—the chain then retains the previous (more precisely, current) value. At other times, we see jumps to new values, corresponding to accepted proposals.
 
@@ -317,17 +329,25 @@ Note that we often talk about “running multiple MCMC chains” to diagnose con
 
 We then plot both chains together, as in Figure \@ref(fig:traceplot2):
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/traceplot2-1.png" alt="Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations. Two chains were run with different initial values, 0.5 in blue and 0.2 in yellow." width="90%" />
-<p class="caption">(\#fig:traceplot2)Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations. Two chains were run with different initial values, 0.5 in blue and 0.2 in yellow.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/traceplot2-1} 
+
+}
+
+\caption{Trace plot of simulated values of the survival probability \\(\\theta\\) across iterations. Two chains were run with different initial values, 0.5 in blue and 0.2 in yellow.}(\#fig:traceplot2)
+\end{figure}
 
 Note that we do not obtain exactly the same results because the algorithm is stochastic. We observe the parallel evolution of two chains started from different initial values. If the two chains quickly meet and then oscillate around the same values, this indicates good convergence toward the desired stationary distribution. This is a key step in MCMC convergence diagnostics, which we will cover later in this chapter. To observe convergence over a longer period, we run a chain with 1,000 iterations. This gives a smoother trace plot showing chain stability, as in Figure \@ref(fig:traceplot3):
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/traceplot3-1.png" alt="Trace plot of simulated values of the survival probability \\(\\theta\\) across 1000 iterations." width="90%" />
-<p class="caption">(\#fig:traceplot3)Trace plot of simulated values of the survival probability \\(\\theta\\) across 1000 iterations.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/traceplot3-1} 
+
+}
+
+\caption{Trace plot of simulated values of the survival probability \\(\\theta\\) across 1000 iterations.}(\#fig:traceplot3)
+\end{figure}
 
 <!-- Same thing with three chains and animation! You can find the code to reproduce this figure at <https://gist.github.com/oliviergimenez/5ee33af9c8d947b72a39ed1764040bf3>. -->
 
@@ -349,10 +369,14 @@ In practice, we discard the first values of the Markov chain and use only values
 
 The simplest way to determine the length of the burn-in period is to inspect trace plots. Let us return to our example and look at Figure \@ref(fig:burnin), a trace plot for a chain starting at 0.99:
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/burnin-1.png" alt="Trace plot for a chain starting at 0.99. The shaded area illustrates a possible burn-in period." width="90%" />
-<p class="caption">(\#fig:burnin)Trace plot for a chain starting at 0.99. The shaded area illustrates a possible burn-in period.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/burnin-1} 
+
+}
+
+\caption{Trace plot for a chain starting at 0.99. The shaded area illustrates a possible burn-in period.}(\#fig:burnin)
+\end{figure}
 
 The chain starts at 0.99 and stabilizes quickly, with values oscillating around 0.3 from about iteration 100 onward. We can choose the shaded area as a burn-in period and discard the first 100 values. To be safe, one could use 250 or even 500 iterations as burn-in, provided it does not cost too much computation time, of course.
 
@@ -360,10 +384,14 @@ Inspecting a trace plot from a single chain is useful, but we generally run mult
 
 Let us return to our example: we run two Markov chains with initial values 0.2 and 0.8, varying the number of iterations from 100 to 1000 in steps of 50, and we compute the BGR statistic using half the iterations as burn-in (Figure \@ref(fig:bgr)).
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/bgr-1.png" alt="Value of the Brooks–Gelman–Rubin (BGR) statistic as a function of the number of iterations. A value close to 1 suggests convergence." width="90%" />
-<p class="caption">(\#fig:bgr)Value of the Brooks–Gelman–Rubin (BGR) statistic as a function of the number of iterations. A value close to 1 suggests convergence.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/bgr-1} 
+
+}
+
+\caption{Value of the Brooks–Gelman–Rubin (BGR) statistic as a function of the number of iterations. A value close to 1 suggests convergence.}(\#fig:bgr)
+\end{figure}
 
 We obtain a BGR statistic close to 1 from about 300 iterations onward, suggesting that with a burn-in of 300 iterations, nothing indicates a convergence problem.
 
@@ -375,19 +403,27 @@ What chain length is needed to obtain reliable parameter estimates? Keep in mind
 
 Here again, trace plots can diagnose autocorrelation issues. Returning to the survival example, Figure \@ref(fig:trace-away) shows trace plots (3000 iterations) for different values of the proposal normal standard deviation (parameter `away`) used to generate candidate values.
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/trace-away-1.png" alt="Trace plots for different values of the proposal standard deviation (away). Good mixing is observed with away = 1. The shaded gray area corresponds to a burn-in of 300 iterations." width="90%" />
-<p class="caption">(\#fig:trace-away)Trace plots for different values of the proposal standard deviation (away). Good mixing is observed with away = 1. The shaded gray area corresponds to a burn-in of 300 iterations.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/trace-away-1} 
+
+}
+
+\caption{Trace plots for different values of the proposal standard deviation (away). Good mixing is observed with away = 1. The shaded gray area corresponds to a burn-in of 300 iterations.}(\#fig:trace-away)
+\end{figure}
 
 The very small and very large moves visible in the left and right panels lead to strong correlation between successive observations of the Markov chain, whereas a standard deviation equal to 1 (center) allows efficient exploration of the parameter space. This movement through parameter space is called mixing. Mixing is considered poor when the chain makes jumps that are too small or too large, and good otherwise.
 
 In addition to trace plots, autocorrelation function (ACF) plots provide a convenient way to visualize the strength of autocorrelation in a given sample. ACF plots show the correlation between successively sampled values separated by an increasing number of iterations, called the lag. In Figure \@ref(fig:acf), we obtain ACF plots for different proposal standard deviations using `forecast::ggAcf()`:
 
-<div class="figure" style="text-align: center">
-<img src="02-mcmcmethods_files/figure-html/acf-1.png" alt="Autocorrelation functions (ACF) for different proposal standard deviations. Low autocorrelation is a sign of good mixing. A burn-in of 300 iterations is applied." width="90%" />
-<p class="caption">(\#fig:acf)Autocorrelation functions (ACF) for different proposal standard deviations. Low autocorrelation is a sign of good mixing. A burn-in of 300 iterations is applied.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{02-mcmcmethods_files/figure-latex/acf-1} 
+
+}
+
+\caption{Autocorrelation functions (ACF) for different proposal standard deviations. Low autocorrelation is a sign of good mixing. A burn-in of 300 iterations is applied.}(\#fig:acf)
+\end{figure}
 
 In the left and right panels, autocorrelation is strong and decreases slowly with lag, and mixing is poor. In the central panel, autocorrelation is weak and decreases quickly with lag, and mixing is good.
 
@@ -411,7 +447,7 @@ neff2 <- coda::effectiveSize(d$accepted_traj[d$proposal_sd=="SD = 1"][-c(1:300)]
 neff3 <- coda::effectiveSize(d$accepted_traj[d$proposal_sd=="SD = 10"][-c(1:300)])
 tibble("SD" = c(0.1, 1, 10),
        "n.eff" = round(c(neff1, neff2, neff3)))
-#> # A tibble: 3 × 2
+#> # A tibble: 3 x 2
 #>      SD n.eff
 #>   <dbl> <dbl>
 #> 1   0.1    81

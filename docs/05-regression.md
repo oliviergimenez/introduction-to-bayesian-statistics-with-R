@@ -46,10 +46,14 @@ data <- data.frame(y = y, x = x)
 ```
 
 Figure \@ref(fig:donnees-simulees) below shows the simulated data, as well as the regression line corresponding to the model used to generate them : 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/donnees-simulees-1.png" alt="Simulated data (n = 100) according to the model \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), with \(\beta_0 = 0.1\), \(\beta_1 = 1\) and \(\sigma = 1\). The red line corresponds to the regression line." width="90%" />
-<p class="caption">(\#fig:donnees-simulees)Simulated data (n = 100) according to the model \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), with \(\beta_0 = 0.1\), \(\beta_1 = 1\) and \(\sigma = 1\). The red line corresponds to the regression line.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/donnees-simulees-1} 
+
+}
+
+\caption{Simulated data (n = 100) according to the model \(y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\), with \(\beta_0 = 0.1\), \(\beta_1 = 1\) and \(\sigma = 1\). The red line corresponds to the regression line.}(\#fig:donnees-simulees)
+\end{figure}
 
 ### Fitting with `brms`
 
@@ -97,10 +101,14 @@ We check that the mixing is good (Figure \@ref(fig:fig-posterior-regression)):
 plot(lm.brms)
 ```
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-posterior-regression-1.png" alt="Histograms of the posterior distributions (left column) and traces (right column) of the linear regression parameters. In the histograms, the x-axis represents the possible values of the estimated parameter (intercept, slope, or standard deviation) and the y-axis corresponds to their frequency in the posterior sample. In the trace plots, the x-axis indicates the MCMC iteration number, while the y-axis represents the simulated value of the parameter at each iteration." width="90%" />
-<p class="caption">(\#fig:fig-posterior-regression)Histograms of the posterior distributions (left column) and traces (right column) of the linear regression parameters. In the histograms, the x-axis represents the possible values of the estimated parameter (intercept, slope, or standard deviation) and the y-axis corresponds to their frequency in the posterior sample. In the trace plots, the x-axis indicates the MCMC iteration number, while the y-axis represents the simulated value of the parameter at each iteration.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/fig-posterior-regression-1} 
+
+}
+
+\caption{Histograms of the posterior distributions (left column) and traces (right column) of the linear regression parameters. In the histograms, the x-axis represents the possible values of the estimated parameter (intercept, slope, or standard deviation) and the y-axis corresponds to their frequency in the posterior sample. In the trace plots, the x-axis indicates the MCMC iteration number, while the y-axis represents the simulated value of the parameter at each iteration.}(\#fig:fig-posterior-regression)
+\end{figure}
 
 ### Weakly informative priors {#weakly-informative-priors}
 
@@ -130,16 +138,24 @@ ggplot(lines_df, aes(x = x, y = y, group = line)) +
   labs(x = "x", y = "y")
 ```
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-prior-regression-vague-1.png" alt="Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 100)." width="90%" />
-<p class="caption">(\#fig:fig-prior-regression-vague)Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 100).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/fig-prior-regression-vague-1} 
+
+}
+
+\caption{Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 100).}(\#fig:fig-prior-regression-vague)
+\end{figure}
 
 In Figure \@ref(fig:fig-prior-regression-vague), we see that we obtain aberrant values for the $y_i$, with coypus weighing more than 400 kilograms, and (very) negative values for the mass. We have just done a “prior predictive check”, as in Chapter \@ref(prior). In Figure \@ref(fig:fig-prior-regression), we do the same thing with our weakly informative prior $N(0, 1.5)$:
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-prior-regression-1.png" alt="Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 1.5)." width="90%" />
-<p class="caption">(\#fig:fig-prior-regression)Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 1.5).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/fig-prior-regression-1} 
+
+}
+
+\caption{Simulation of regression lines drawn from the prior distributions. Each line corresponds to a draw of the parameters: intercept and slope ~ N(0, 1.5).}(\#fig:fig-prior-regression)
+\end{figure}
 
 We obtain more reasonable values for the mass of coypus, which rarely exceeds 10 kilograms. We still have negative values, but smaller ones, and the MCMC algorithm should cope. There is also a numerical advantage to using weakly informative priors: they help MCMC methods not to get lost in the space of all possible values for the parameters to be estimated, and allow them to focus on realistic values of these parameters. By doing this, you may have the impression that we are using the data to construct the priors, whereas we said that the prior should reflect the information available before seeing the data. This is an opportunity to clarify this point a bit. The important thing is above all that the prior represents information independent of the data that are used in the likelihood.
 
@@ -151,10 +167,14 @@ A more flexible and more realistic alternative is to use an exponential distribu
 
 By default, one often takes $\lambda = 1$. With $\lambda = 1$, the mean and the standard deviation of this distribution are both equal to $1$, which induces a modest but non-restrictive prior (Figure \@ref(fig:fig-prior-sigma)).
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/fig-prior-sigma-1.png" alt="Comparison between two prior distributions for the standard deviation \(\sigma\): a uniform distribution \(\text{U}(0,5)\), which gives the same density between 0 and 5, and an exponential distribution \(\text{Exp}(1)\), which favors small values while retaining a heavier tail." width="90%" />
-<p class="caption">(\#fig:fig-prior-sigma)Comparison between two prior distributions for the standard deviation \(\sigma\): a uniform distribution \(\text{U}(0,5)\), which gives the same density between 0 and 5, and an exponential distribution \(\text{Exp}(1)\), which favors small values while retaining a heavier tail.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/fig-prior-sigma-1} 
+
+}
+
+\caption{Comparison between two prior distributions for the standard deviation \(\sigma\): a uniform distribution \(\text{U}(0,5)\), which gives the same density between 0 and 5, and an exponential distribution \(\text{Exp}(1)\), which favors small values while retaining a heavier tail.}(\#fig:fig-prior-sigma)
+\end{figure}
 
 We can formalize this model as follows:
 \begin{align}
@@ -282,7 +302,9 @@ MCMCtrace(object = lm.nimble,
           n.eff = TRUE)
 ```
 
-<img src="05-regression_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/unnamed-chunk-19-1} \end{center}
 
 Everything looks good. Mixing is correct, and the convergence diagnostics are in the green. 
 
@@ -291,10 +313,14 @@ Everything looks good. Mixing is correct, and the convergence diagnostics are in
 Finally, we can compare with maximum likelihood fitting, obtained simply with the command `lm(y ~ x, data = data)`. Everything is in Figure \@ref(fig:comparaison-methodes):
 
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/comparaison-methodes-1.png" alt="Comparison of parameter estimates (intercept and slope) across methods (brms, lm, and NIMBLE). Points show posterior means for brms and NIMBLE, and the maximum likelihood estimate for lm. We also show 95% credible intervals (brms and NIMBLE) and the 95% confidence interval (lm). The dashed black line indicates the true value used to simulate the data." width="90%" />
-<p class="caption">(\#fig:comparaison-methodes)Comparison of parameter estimates (intercept and slope) across methods (brms, lm, and NIMBLE). Points show posterior means for brms and NIMBLE, and the maximum likelihood estimate for lm. We also show 95% credible intervals (brms and NIMBLE) and the 95% confidence interval (lm). The dashed black line indicates the true value used to simulate the data.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/comparaison-methodes-1} 
+
+}
+
+\caption{Comparison of parameter estimates (intercept and slope) across methods (brms, lm, and NIMBLE). Points show posterior means for brms and NIMBLE, and the maximum likelihood estimate for lm. We also show 95\% credible intervals (brms and NIMBLE) and the 95\% confidence interval (lm). The dashed black line indicates the true value used to simulate the data.}(\#fig:comparaison-methodes)
+\end{figure}
 
 The posterior means obtained with `NIMBLE` and `brms` are close to the maximum likelihood estimates for the intercept and the slope, to a lesser extent. The credible intervals obtained with `NIMBLE` and `brms` and the confidence interval obtained by maximum likelihood all include the true parameter values used to simulate the data. Keep in mind that this is a single simulation; the exercise would need to be repeated many times to formally assess the distance between the true values and the parameter estimates (bias). 
 
@@ -338,10 +364,14 @@ ggplot(data, aes(x = x, y = y)) +
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/brms-fit-plot-1.png" alt="Linear model fit with brms. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval." width="90%" />
-<p class="caption">(\#fig:brms-fit-plot)Linear model fit with brms. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/brms-fit-plot-1} 
+
+}
+
+\caption{Linear model fit with brms. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95\% credible interval.}(\#fig:brms-fit-plot)
+\end{figure}
 
 With `NIMBLE`, this is Figure \@ref(fig:nimble-fit-plot): 
 
@@ -375,10 +405,14 @@ ggplot() +
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/nimble-fit-plot-1.png" alt="Linear model fit with NIMBLE. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval." width="90%" />
-<p class="caption">(\#fig:nimble-fit-plot)Linear model fit with NIMBLE. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95% credible interval.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/nimble-fit-plot-1} 
+
+}
+
+\caption{Linear model fit with NIMBLE. The blue line is the estimated regression, obtained by setting the intercept and slope to their posterior means, surrounded by its 95\% credible interval.}(\#fig:nimble-fit-plot)
+\end{figure}
 
 Bayesian methods are often used for more complex models than linear regression (such as mixed models; see Chapter \@ref(glms)), for which there are no standard turnkey goodness-of-fit tests. In these situations, we commonly use what are called posterior predictive checks. The idea is to simulate new datasets from the posterior distribution of the model parameters, and then compare them to the observed data. The more the simulated data resemble the real data, the more it suggests that the model fits well. This comparison can be done visually or using a Bayesian p-value that quantifies the discrepancy between simulated and observed data.
 
@@ -388,10 +422,14 @@ In `brms`, you just do:
 pp_check(lm.brms)
 ```
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/ppcheck-brms-1.png" alt="Posterior predictive checks produced with brms. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density." width="90%" />
-<p class="caption">(\#fig:ppcheck-brms)Posterior predictive checks produced with brms. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/ppcheck-brms-1} 
+
+}
+
+\caption{Posterior predictive checks produced with brms. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density.}(\#fig:ppcheck-brms)
+\end{figure}
 
 The `pp_check()` function generates posterior predictive check plots (Figure \@ref(fig:ppcheck-brms)). It compares observed data to data simulated from the fitted model. If the model fits the data well, then we should be able to use it to generate data that resemble the observed data. Therefore, if the simulated curves overlap the observations well, this indicates that the model captures the structure of the data correctly. Otherwise, this may suggest a model misspecification, for example an inappropriate link or distribution family (see Chapter \@ref(glms)).  
 
@@ -472,10 +510,14 @@ ggplot() +
   theme_minimal(base_size = 14)
 ```
 
-<div class="figure" style="text-align: center">
-<img src="05-regression_files/figure-html/ppcheck-nimble-1.png" alt="Posterior predictive checks produced with NIMBLE. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density." width="90%" />
-<p class="caption">(\#fig:ppcheck-nimble)Posterior predictive checks produced with NIMBLE. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{05-regression_files/figure-latex/ppcheck-nimble-1} 
+
+}
+
+\caption{Posterior predictive checks produced with NIMBLE. The black curve corresponds to the observed data; the blue curves to data simulated under the model. The x-axis shows the possible values of the simulated or observed response. The y-axis shows their estimated density.}(\#fig:ppcheck-nimble)
+\end{figure}
 
 We can also compute a Bayesian p-value, which represents the proportion of datasets simulated under the model for which the chosen statistic (here the mean) is as large as or larger than the observed one. A value close to 0 or 1 can indicate a poor fit of the model for that particular statistic, whereas a value close to 0.5 suggests a good fit. This Bayesian p-value is obtained as follows: 
 

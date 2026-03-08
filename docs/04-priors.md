@@ -30,10 +30,14 @@ In practice, a cautious strategy is to start with a weakly informative prior, su
 
 Let us return to our running example on coypu survival. Let us examine how different choices of priors influence the posterior distribution of this survival probability. In Figure \@ref(fig:priors-comparaison), we have three increasingly informative priors (in columns), and two sample sizes (in rows).
 
-<div class="figure" style="text-align: center">
-<img src="04-priors_files/figure-html/priors-comparaison-1.png" alt="Combined effect of the prior and sample size on the posterior distribution with a binomial likelihood. Columns: three beta priors Beta(1,1), Beta(5,5) and Beta(20,1). Rows: small (n = 6, y = 2) and large (n = 57, y = 19) sample (factor 10). The red line represents the prior, the black line the posterior distribution." width="100%" />
-<p class="caption">(\#fig:priors-comparaison)Combined effect of the prior and sample size on the posterior distribution with a binomial likelihood. Columns: three beta priors Beta(1,1), Beta(5,5) and Beta(20,1). Rows: small (n = 6, y = 2) and large (n = 57, y = 19) sample (factor 10). The red line represents the prior, the black line the posterior distribution.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{04-priors_files/figure-latex/priors-comparaison-1} 
+
+}
+
+\caption{Combined effect of the prior and sample size on the posterior distribution with a binomial likelihood. Columns: three beta priors Beta(1,1), Beta(5,5) and Beta(20,1). Rows: small (n = 6, y = 2) and large (n = 57, y = 19) sample (factor 10). The red line represents the prior, the black line the posterior distribution.}(\#fig:priors-comparaison)
+\end{figure}
 
 With little data (top row), the effect of the prior is visible: the posterior distribution of survival remains close to the prior, especially with the $\text{Beta}(20,1)$ which pulls the estimate toward high values. With more data (bottom row), the posterior distribution is dominated by the likelihood: it concentrates around the observed proportion, except for the prior $\text{Beta}(20,1)$ for which the posterior distribution is centered on 0.5. We thus observe a fundamental principle of Bayesian inference: the more numerous and informative the data are, the less the prior influences the results.
 
@@ -71,10 +75,14 @@ Now imagine that we have limited data. What happens if we only have the first th
 
 This time, the informative prior makes a real difference. The width of the interval is reduced by nearly 50%, while bringing the mean estimate back toward a more realistic value for a passerine. We also note that the posterior estimate of model B with 3 years of data is close to that obtained with 7 years (Figure \@ref(fig:comparaison-prior-survie)).
 
-<div class="figure" style="text-align: center">
-<img src="04-priors_files/figure-html/comparaison-prior-survie-1.png" alt="Comparison of posterior estimates of dipper survival according to the type of prior and study duration. Each point represents the posterior mean, with its 95% credible interval. The grey line indicates the survival value from the meta-analysis for passerines (0.57)." width="100%" />
-<p class="caption">(\#fig:comparaison-prior-survie)Comparison of posterior estimates of dipper survival according to the type of prior and study duration. Each point represents the posterior mean, with its 95% credible interval. The grey line indicates the survival value from the meta-analysis for passerines (0.57).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{04-priors_files/figure-latex/comparaison-prior-survie-1} 
+
+}
+
+\caption{Comparison of posterior estimates of dipper survival according to the type of prior and study duration. Each point represents the posterior mean, with its 95\% credible interval. The grey line indicates the survival value from the meta-analysis for passerines (0.57).}(\#fig:comparaison-prior-survie)
+\end{figure}
 
 This example shows that information from the literature (here an allometric mass–survival relationship obtained via a meta-analysis) can be used to build a relevant informative prior, capable of substantially improving the precision of estimates, especially when data are limited. This approach offers a low-cost alternative to lengthening field protocols, provided of course that the (relatively simple) question remains the estimation of a single survival.
 
@@ -110,10 +118,10 @@ We can check that this beta distribution indeed has the mean and standard deviat
 ech_prior <- rbeta(n = 10000, shape1 = 24.3, shape2 = 18.3)
 # empirical mean of the draws (should be close to 0.57)
 mean(ech_prior)
-#> [1] 0.5685004
+#> [1] 0.5702873
 # empirical standard deviation of the draws (should be close to 0.075)
 sd(ech_prior)
-#> [1] 0.07496597
+#> [1] 0.07550567
 ```
 
 We can therefore adopt a prior \(\text{Beta}(a=24.3,\,b=18.3)\) to incorporate the mean information and its variability obtained from the allometric survival–mass relationship.
@@ -160,10 +168,14 @@ pnorm(c(-0.15, 0.25), mean = mu, sd = sigma)
 
 Visually, Figure \@ref(fig:prior-normal-viz) shows the density of a normal distribution with mean \(\mu=0.05\) and standard deviation \(\sigma=0.156\). The light-blue interval corresponds to the central 80% credible interval, that is, the interval [−0.15; 0.25] which contains 80% of the probability mass. The grey dotted lines indicate the bounds of this interval, while the black dashed line marks the position of the mean. We see that, thanks to the symmetry of the normal distribution, the interval is centered around the mean, and that 10% of the mass lies on each side outside this interval.
 
-<div class="figure" style="text-align: center">
-<img src="04-priors_files/figure-html/prior-normal-viz-1.png" alt="Normal distribution with mean 0.05 and standard deviation 0.156. The shaded interval corresponds to the 80% credible interval, between –0.15 and 0.25." width="100%" />
-<p class="caption">(\#fig:prior-normal-viz)Normal distribution with mean 0.05 and standard deviation 0.156. The shaded interval corresponds to the 80% credible interval, between –0.15 and 0.25.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{04-priors_files/figure-latex/prior-normal-viz-1} 
+
+}
+
+\caption{Normal distribution with mean 0.05 and standard deviation 0.156. The shaded interval corresponds to the 80\% credible interval, between –0.15 and 0.25.}(\#fig:prior-normal-viz)
+\end{figure}
 
 ## Beware of so-called non-informative priors {#surprise}
 
@@ -193,10 +205,14 @@ prior2 <- plogis(logit_prior2)
 
 Here the induced distribution on $\theta$ is uniform, covering mainly the range of values between 0.05 and 0.95 as we can see in Figure \@ref(fig:prior-combined-ggplot) (right panel), which better reflects a lack of information about $\theta$. This second choice is the right one; we speak of weakly informative priors.
 
-<div class="figure" style="text-align: center">
-<img src="04-priors_files/figure-html/prior-combined-ggplot-1.png" alt="Comparison of two priors obtained for the probability \( \theta = \text{logit}^{-1}(\beta) \) after transformation by the inverse logit function of \( \beta \sim N(0, 10^2) \) and \( \beta \sim N(0, 1.5^2) \). The x-axis represents the different possible values of the probability \( \theta \) obtained after transformation by the inverse logit. The y-axis indicates the frequency of simulated draws for each value." width="100%" />
-<p class="caption">(\#fig:prior-combined-ggplot)Comparison of two priors obtained for the probability \( \theta = \text{logit}^{-1}(\beta) \) after transformation by the inverse logit function of \( \beta \sim N(0, 10^2) \) and \( \beta \sim N(0, 1.5^2) \). The x-axis represents the different possible values of the probability \( \theta \) obtained after transformation by the inverse logit. The y-axis indicates the frequency of simulated draws for each value.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{04-priors_files/figure-latex/prior-combined-ggplot-1} 
+
+}
+
+\caption{Comparison of two priors obtained for the probability \( \theta = \text{logit}^{-1}(\beta) \) after transformation by the inverse logit function of \( \beta \sim N(0, 10^2) \) and \( \beta \sim N(0, 1.5^2) \). The x-axis represents the different possible values of the probability \( \theta \) obtained after transformation by the inverse logit. The y-axis indicates the frequency of simulated draws for each value.}(\#fig:prior-combined-ggplot)
+\end{figure}
 
 There are also invariant priors, that is, priors whose shape accounts for the scale of the parameter. Jeffreys' prior is an example: it maximizes the information brought by the data, while remaining invariant under reparameterization. For example, for a probability $\theta$, Jeffreys' prior is $\text{Beta}(0.5, 0.5)$. This prior is less flat than a uniform $\text{Beta}(1, 1)$. It is often used when one wants an objective approach, without introducing subjective information. In practice, however, Jeffreys' prior is difficult to compute, and we will prefer the simulation-based approach to ensure that transformed parameters have reasonable priors.
 

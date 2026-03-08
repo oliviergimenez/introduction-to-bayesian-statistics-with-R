@@ -12,10 +12,14 @@ We saw the solution in Chapter \@ref(principles). We set \(z_i = 1\) when coypu 
 
 We also saw in Chapters \@ref(mcmc) and \@ref(software) that we can use the logit function to force a parameter to be properly estimated between 0 and 1. This amounts to writing \(\text{logit}(\theta_i) = \beta_0 + \beta_1 x_i\), as explained in Figure \@ref(fig:logit-link).
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/logit-link-1.png" alt="Left: the logit function transforms a probability p into an unbounded continuous value logit(p) that lives between minus infinity and plus infinity. Right: the inverse logit function transforms a linear combination of predictors (linear value on the figure) into a probability that lives between 0 and 1. The logit function is used in logistic regression (a GLM with binomial distribution) to transform a probability (between 0 and 1) into a continuous variable defined on the real line. Then, the inverse logit function allows you to return to the probability scale." width="90%" />
-<p class="caption">(\#fig:logit-link)Left: the logit function transforms a probability p into an unbounded continuous value logit(p) that lives between minus infinity and plus infinity. Right: the inverse logit function transforms a linear combination of predictors (linear value on the figure) into a probability that lives between 0 and 1. The logit function is used in logistic regression (a GLM with binomial distribution) to transform a probability (between 0 and 1) into a continuous variable defined on the real line. Then, the inverse logit function allows you to return to the probability scale.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/logit-link-1} 
+
+}
+
+\caption{Left: the logit function transforms a probability p into an unbounded continuous value logit(p) that lives between minus infinity and plus infinity. Right: the inverse logit function transforms a linear combination of predictors (linear value on the figure) into a probability that lives between 0 and 1. The logit function is used in logistic regression (a GLM with binomial distribution) to transform a probability (between 0 and 1) into a continuous variable defined on the real line. Then, the inverse logit function allows you to return to the probability scale.}(\#fig:logit-link)
+\end{figure}
 
 
 To formalize things a bit, we have:
@@ -62,17 +66,25 @@ fit_logit <- brm(survival ~ mass,
 By the way, interpreting the coefficients of logistic regression is not easy. People often introduce the notion of odds ratios to help, but personally it does not speak to me any more than that. I always come back to a graphical representation of the relationship between the probability of success (survival here) and the explanatory variables (body mass here), as in Figure \@ref(fig:logit-vs-gaussian). We observe a positive trend here, but it is due only to the randomness of the simulation (since the data were generated without any effect of body mass). Another intuitive way to deal with this is to use the rule of 4 proposed by Andrew Gelman and colleagues. The trick is to divide the slope of the logistic regression by 4. This gives an approximate estimate of the expected change in probability for a one-unit change in the explanatory variable, at the point where the curve is steepest. If the slope is estimated at 0.23, for example, then the maximum slope of the logistic curve (around the inflection point, where it changes shape) is approximately \(0.23/4 = 0.06\). This means that an increase of one unit in the explanatory variable (here, the coypu’s body mass increases by 1 kg) increases the survival probability by about 6% at the point where the slope is strongest (we go from a survival probability of 0.5 to 0.53), as illustrated in Figure \@ref(fig:gelman-rule):
 
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/gelman-rule-1.png" alt="Illustration of Gelman’s rule of 4. Here, we approximate the effect of coypu body mass on survival probability (the black logistic curve) around the inflection point by a straight line whose slope is given by the estimated coefficient divided by 4 (the red dashed line)." width="90%" />
-<p class="caption">(\#fig:gelman-rule)Illustration of Gelman’s rule of 4. Here, we approximate the effect of coypu body mass on survival probability (the black logistic curve) around the inflection point by a straight line whose slope is given by the estimated coefficient divided by 4 (the red dashed line).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/gelman-rule-1} 
+
+}
+
+\caption{Illustration of Gelman’s rule of 4. Here, we approximate the effect of coypu body mass on survival probability (the black logistic curve) around the inflection point by a straight line whose slope is given by the estimated coefficient divided by 4 (the red dashed line).}(\#fig:gelman-rule)
+\end{figure}
 
 But I am digressing—let’s return to the problem of applying linear regression to binary data. As you can see in Figure \@ref(fig:logit-vs-gaussian), linear regression amounts to fitting an unbounded straight line to binary data, which can lead to survival probabilities greater than 1 (and/or smaller than 0, even if that is not the case here). Logistic regression, by contrast, naturally constrains predictions between 0 and 1 thanks to the logit transformation, making it a suitable choice for success/failure variables. By the way, I used the Bernoulli formulation to introduce an explanatory variable measured at the individual scale, but if that is not necessary, we can go back to the grouped formulation with the binomial distribution as in the previous chapters.
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/logit-vs-gaussian-1.png" alt="Comparison between a linear regression and a logistic regression fitted to binary data. Linear regression (in blue) produces predictions greater than 1 (a problem for a survival probability), whereas logistic regression (in red) guarantees a valid probability estimate." width="90%" />
-<p class="caption">(\#fig:logit-vs-gaussian)Comparison between a linear regression and a logistic regression fitted to binary data. Linear regression (in blue) produces predictions greater than 1 (a problem for a survival probability), whereas logistic regression (in red) guarantees a valid probability estimate.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/logit-vs-gaussian-1} 
+
+}
+
+\caption{Comparison between a linear regression and a logistic regression fitted to binary data. Linear regression (in blue) produces predictions greater than 1 (a problem for a survival probability), whereas logistic regression (in red) guarantees a valid probability estimate.}(\#fig:logit-vs-gaussian)
+\end{figure}
 
 ## Generalized linear mixed models (GLMMs)
 
@@ -88,10 +100,14 @@ Along the way, you will see the terms *hierarchical models*, *multilevel models*
 
 To illustrate a GLMM concretely, imagine the situation where we want to estimate coypu abundance in the Lez watershed, in Montpellier, where the Lez is a river that runs through the city. We lay out ten transects across the study area. On each transect, we count the number of coypu present at ten regularly spaced points. We are interested in how the number of coypu (counts) responds to temperature. The measurements are clearly hierarchical: we take one count at each of the 10 points within each of the 10 transects. The protocol is illustrated in Figure \@ref(fig:protocole) and is inspired by the book of my colleague Jason Matthiopoulos [@matthiopoulosHowBeQuantitative2011].
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/protocole-1.png" alt="Diagram of the coypu data under a sampling protocol with 10 points in 10 transects. The study area is in black. The top panel shows the number of coypu, and the bottom panel shows temperature." width="90%" />
-<p class="caption">(\#fig:protocole)Diagram of the coypu data under a sampling protocol with 10 points in 10 transects. The study area is in black. The top panel shows the number of coypu, and the bottom panel shows temperature.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/protocole-1} 
+
+}
+
+\caption{Diagram of the coypu data under a sampling protocol with 10 points in 10 transects. The study area is in black. The top panel shows the number of coypu, and the bottom panel shows temperature.}(\#fig:protocole)
+\end{figure}
 
 Starting from this protocol, let us simulate data with the following script. We will make it a bit more challenging by assuming that, among our ten transects, we had sampling issues on three of them, for which we could only sample two or three points:
 
@@ -131,10 +147,14 @@ head(sim_simple)
 
 I have commented the code, which should make it easier to read. Nevertheless, a few explanations of the different steps are in order. We begin with a loop `for (tr in 1:transects)` that simulates the data for each of the ten transects, one by one. Each time, we draw a transect-specific random effect (`ref`), which slightly shifts the intercept of the relationship between temperature and the number of coypu depending on the transect. Next, we generate a temperature sequence (`t`) with a randomly drawn starting point and a small slope that changes temperature slightly from one point to the next. From this temperature, we compute the expected intensity of the counting process (`ans`) by assuming a linear relationship (on the log scale), and then we generate the observed data (`an`) by drawing values from a Poisson distribution with mean `ans`. Finally, we gather everything into a table (`sim_simple`) so we can analyze it. Figure \@ref(fig:plotsimple) illustrates the data we obtain:
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/plotsimple-1.png" alt="Relationship between the number of coypu and temperature by transect, with multiple count points (10 for all transects, except transects 4, 5, and 8 for which we have 3, 2, and 3 points) per transect." width="90%" />
-<p class="caption">(\#fig:plotsimple)Relationship between the number of coypu and temperature by transect, with multiple count points (10 for all transects, except transects 4, 5, and 8 for which we have 3, 2, and 3 points) per transect.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/plotsimple-1} 
+
+}
+
+\caption{Relationship between the number of coypu and temperature by transect, with multiple count points (10 for all transects, except transects 4, 5, and 8 for which we have 3, 2, and 3 points) per transect.}(\#fig:plotsimple)
+\end{figure}
 
 ### The GLM approach
 
@@ -191,10 +211,14 @@ summary(fit_complete)
 
 Here we ignore that observations are collected by transect, and we incorrectly assume that all observations are independent. The risk is to draw misleading conclusions: we might think there is a single relationship while differences are actually due to transect-to-transect variation, or conversely we might miss a true trend. A model check shows in Figure \@ref(fig:ppcheck-complete) that the fit is poor:
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/ppcheck-complete-1.png" alt="Model-check for the complete pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black). Poor overlap indicates a lack of fit." width="90%" />
-<p class="caption">(\#fig:ppcheck-complete)Model-check for the complete pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black). Poor overlap indicates a lack of fit.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/ppcheck-complete-1} 
+
+}
+
+\caption{Model-check for the complete pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black). Poor overlap indicates a lack of fit.}(\#fig:ppcheck-complete)
+\end{figure}
 
 To account for the structure in the data, we can fit another model in which transect is treated as a **fixed effect**. In other words, we fit a separate curve for each transect, with its own intercept, but a common slope:
 
@@ -289,17 +313,25 @@ We indeed estimate one intercept per transect (so 10 intercepts), and a common s
 
 The fit is better, as shown in Figure \@ref(fig:ppcheck-nopool):
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/ppcheck-nopool-1.png" alt="Model-check for the no pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black)." width="90%" />
-<p class="caption">(\#fig:ppcheck-nopool)Model-check for the no pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/ppcheck-nopool-1} 
+
+}
+
+\caption{Model-check for the no pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black).}(\#fig:ppcheck-nopool)
+\end{figure}
 
 This **no pooling** model improves on the **complete pooling** model (Figure \@ref(fig:pooling-coypus)), but it remains unsatisfying. No pooling means fitting an independent model for each transect, without sharing information across groups. This creates two issues: (i) we cannot generalise conclusions beyond the specific transects observed, and (ii) we potentially waste information by assuming that each transect has nothing to learn from the others. This strategy becomes especially inefficient when some groups have few observations.
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/pooling-coypus-1.png" alt="Comparison between complete pooling (black) and no pooling (red) models to predict coypu counts as a function of temperature, by transect. The no pooling model fits an independent curve for each transect, whereas complete pooling assumes a common relationship." width="90%" />
-<p class="caption">(\#fig:pooling-coypus)Comparison between complete pooling (black) and no pooling (red) models to predict coypu counts as a function of temperature, by transect. The no pooling model fits an independent curve for each transect, whereas complete pooling assumes a common relationship.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/pooling-coypus-1} 
+
+}
+
+\caption{Comparison between complete pooling (black) and no pooling (red) models to predict coypu counts as a function of temperature, by transect. The no pooling model fits an independent curve for each transect, whereas complete pooling assumes a common relationship.}(\#fig:pooling-coypus)
+\end{figure}
 
 ### The GLMM approach
 
@@ -374,17 +406,25 @@ We can also inspect posterior densities and trace plots (Figure \@ref(fig:model-
 plot(fit_partial)
 ```
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/model-diagnostics-1.png" alt="Convergence diagnostics for the partial pooling model. In the histograms (left column), the x-axis shows possible parameter values (intercept, slope, or SD) and the y-axis shows their frequency in the posterior sample. In the trace plots (right column), the x-axis shows the MCMC iteration and the y-axis shows the sampled parameter value." width="90%" />
-<p class="caption">(\#fig:model-diagnostics)Convergence diagnostics for the partial pooling model. In the histograms (left column), the x-axis shows possible parameter values (intercept, slope, or SD) and the y-axis shows their frequency in the posterior sample. In the trace plots (right column), the x-axis shows the MCMC iteration and the y-axis shows the sampled parameter value.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/model-diagnostics-1} 
+
+}
+
+\caption{Convergence diagnostics for the partial pooling model. In the histograms (left column), the x-axis shows possible parameter values (intercept, slope, or SD) and the y-axis shows their frequency in the posterior sample. In the trace plots (right column), the x-axis shows the MCMC iteration and the y-axis shows the sampled parameter value.}(\#fig:model-diagnostics)
+\end{figure}
 
 We can now update Figure \@ref(fig:pooling-coypus) with Figure \@ref(fig:partial-coypus):
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/partial-coypus-1.png" alt="Comparison among complete pooling (black), no pooling (red), and partial pooling (blue) models to predict coypu counts as a function of temperature, by transect. No pooling fits a separate curve for each transect, complete pooling assumes a common relationship, and partial pooling provides a compromise via a transect random effect." width="90%" />
-<p class="caption">(\#fig:partial-coypus)Comparison among complete pooling (black), no pooling (red), and partial pooling (blue) models to predict coypu counts as a function of temperature, by transect. No pooling fits a separate curve for each transect, complete pooling assumes a common relationship, and partial pooling provides a compromise via a transect random effect.</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/partial-coypus-1} 
+
+}
+
+\caption{Comparison among complete pooling (black), no pooling (red), and partial pooling (blue) models to predict coypu counts as a function of temperature, by transect. No pooling fits a separate curve for each transect, complete pooling assumes a common relationship, and partial pooling provides a compromise via a transect random effect.}(\#fig:partial-coypus)
+\end{figure}
 
 We see that the partial pooling fit is very similar to the no pooling fit, and much better than complete pooling. There is a small difference for transects with few sampling points (transects 4, 5, and 8): for those, partial pooling is closer to complete pooling. In the absence of much information for these transects, it is reasonable that their estimates are pulled toward the overall mean rather than toward extreme, transect-specific values.
 
@@ -392,10 +432,14 @@ This is the information-sharing mechanism known as **borrowing strength**. It le
 
 Model fit is validated in Figure \@ref(fig:ppcheck-partial):
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/ppcheck-partial-1.png" alt="Model-check for the partial pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black)." width="90%" />
-<p class="caption">(\#fig:ppcheck-partial)Model-check for the partial pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/ppcheck-partial-1} 
+
+}
+
+\caption{Model-check for the partial pooling model. The x-axis shows possible values of the observed or simulated response. The y-axis shows the estimated density. Simulated distributions (blue) are compared with the observed data (black).}(\#fig:ppcheck-partial)
+\end{figure}
 
 When fitting a model with a standardised predictor (here, temperature), coefficients \(\beta_0\) and \(\beta_1\) are interpreted on that modified scale: \(\beta_1\) corresponds to a one-standard-deviation change in temperature, and \(\beta_0\) corresponds to the expected value when standardised temperature equals 0 (i.e., at mean temperature). In practice we often want effects in natural units (degrees Celsius) rather than in standard deviations. We can convert coefficients back to the original scale using:
 
@@ -440,10 +484,14 @@ tibble(b0 = bzero) %>%
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b0-original-brms-1.png" alt="Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0)." width="90%" />
-<p class="caption">(\#fig:hist-b0-original-brms)Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/hist-b0-original-brms-1} 
+
+}
+
+\caption{Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0).}(\#fig:hist-b0-original-brms)
+\end{figure}
 
 
 ``` r
@@ -458,10 +506,14 @@ tibble(b1 = bun) %>%
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b1-original-brms-1.png" alt="Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2)." width="90%" />
-<p class="caption">(\#fig:hist-b1-original-brms)Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/hist-b1-original-brms-1} 
+
+}
+
+\caption{Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2).}(\#fig:hist-b1-original-brms)
+\end{figure}
 
 We recover the parameters used to simulate the data (in red). This is only one simulation run, so it is normal that the posterior mode does not coincide exactly with the true value. Repeating the simulation many times would allow us to assess bias and variability more formally.
 
@@ -489,7 +541,7 @@ tibble(
   WAIC  = c(waic1$estimates["waic", "Estimate"],
             waic2$estimates["waic", "Estimate"])
 )
-#> # A tibble: 2 × 2
+#> # A tibble: 2 x 2
 #>   Model                WAIC
 #>   <chr>               <dbl>
 #> 1 With temperature     542.
@@ -651,10 +703,14 @@ tibble(b0 = bzero) %>%
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b0-original-1.png" alt="Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0)." width="90%" />
-<p class="caption">(\#fig:hist-b0-original)Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/hist-b0-original-1} 
+
+}
+
+\caption{Posterior distribution of the mean intercept (original scale). The red line indicates the true value (0).}(\#fig:hist-b0-original)
+\end{figure}
 
 
 ``` r
@@ -669,10 +725,14 @@ tibble(b1 = bun) %>%
   theme_minimal()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="06-glms_files/figure-html/hist-b1-original-1.png" alt="Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2)." width="90%" />
-<p class="caption">(\#fig:hist-b1-original)Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2).</p>
-</div>
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{06-glms_files/figure-latex/hist-b1-original-1} 
+
+}
+
+\caption{Posterior distribution of the temperature effect (original scale). The red line indicates the true value (0.2).}(\#fig:hist-b1-original)
+\end{figure}
 
 We recover the parameters used to simulate the data (in red). As with `brms`, we ran only one simulation, so it is normal not to match the true values exactly. Repeating simulations many times would provide a more formal assessment.
 
@@ -728,7 +788,7 @@ tibble(
   Model = c("With temperature", "Without temperature"),
   WAIC  = c(waic.full, waic.null)
 )
-#> # A tibble: 2 × 2
+#> # A tibble: 2 x 2
 #>   Model                WAIC
 #>   <chr>               <dbl>
 #> 1 With temperature     542.

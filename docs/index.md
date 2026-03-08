@@ -2,7 +2,7 @@
 title: "Introduction to Bayesian Statistics with R"
 subtitle: "using NIMBLE and brms"
 author: "Olivier Gimenez"
-date: "2026-02-24"
+date: "2026-03-08"
 knit: "bookdown::render_book"
 site: bookdown::bookdown_site
 output:
@@ -15,7 +15,8 @@ output:
     toc: true
     number_sections: true
     keep_tex: false
-documentclass: book
+#documentclass: book
+documentclass: krantz
 bibliography: [book.bib]
 biblio-style: apalike
 link-citations: true
@@ -31,9 +32,11 @@ description: "Introduction to Bayesian statistics with R"
 
 Bayesian statistics can be found almost everywhere in science. For example, in epidemiology to predict the spread of viruses, in ecology to understand the extinction of plant and animal species, or in computer science to filter unwanted emails. The widespread adoption of Bayesian methods over the past decades has largely been driven by advances in computing power. But it is also due to the nature of the approach itself, which closely matches how we learn, reason, and accumulate knowledge.
 
-In this book, I offer an introduction to Bayesian statistics. You are currently reading the electronic version of the book, which is the English version of a book published by Quae in March 2026.
+In this book, I offer an introduction to Bayesian statistics. You are currently reading the electronic version of the book, which is the English version of a book published by Quae in March 2026 at <https://www.quae.com/produit/1988/9782759242580/introduction-a-la-statistique-bayesienne>.
 
-<img src="images/cover.png" width="100%" style="display: block; margin: auto;" />
+<!-- ```{r echo=FALSE, fig.align='center', out.width='100%'} -->
+<!-- knitr::include_graphics("images/cover.png") -->
+<!-- ``` -->
 
 My goals in writing this book were twofold:\
 1) to synthesize the key methodological concepts that are essential to understand, and\
